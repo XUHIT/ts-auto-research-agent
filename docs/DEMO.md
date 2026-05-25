@@ -46,3 +46,41 @@ research_state/
 ```
 
 The local report is generated from actual run outputs and is not committed to git.
+
+## Full Research Demo
+
+The full demo exercises every major agent stage:
+
+1. Build a paper-note index.
+2. Propose a literature-grounded idea.
+3. Run the pre-taste gate.
+4. Generate recoverable experiment plans.
+5. Execute real Time-Series-Library_simple runs.
+6. Parse RMSE and MAE.
+7. Generate post-taste review decisions.
+8. Update leaderboard and trajectory.
+9. Write a presentation report.
+
+```bash
+cd /home/xu/ts-auto-research-agent
+ts-agent demo full-research \
+  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
+  --literature-limit 50 \
+  --topic forecasting \
+  --model DLinear \
+  --model PatchTST \
+  --model MLP \
+  --data ETTh1.csv \
+  --seq-len 24 \
+  --pred-len 24 \
+  --subset-ratio 0.05 \
+  --train-epochs 1
+```
+
+Expected local report:
+
+```text
+research_state/full_research_demo_report.md
+```
+
+This is the recommended presentation artifact because it shows the agent as a complete research workflow, not just an experiment runner.

@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 
 from .assets import filter_assets, scan_assets, write_asset_inventory
-from .demo import run_tsl_simple_demo
+from .demo import run_full_research_demo, run_tsl_simple_demo
 from .io_utils import read_json
 from .literature import build_index
 from .loop import parse_last, read_leaderboard, run_loop_budget, run_next
@@ -198,6 +198,33 @@ def cmd_demo_tsl_simple(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_demo_full_research(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    result = run_full_research_demo(
+        workspace,
+        paper_source=Path(args.paper_source),
+        topic=args.topic,
+        models=args.model,
+        data=args.data,
+        seq_len=args.seq_len,
+        pred_len=args.pred_len,
+        subset_ratio=args.subset_ratio,
+        train_epochs=args.train_epochs,
+        literature_limit=args.literature_limit,
+    )
+    print(f"demo_report={result['report_path']}")
+    print(f"idea={result['idea']['id']} taste={result['taste_pre']['status']}")
+    print(f"indexed_papers={result['literature']['count']}")
+    for item in result["results"]:
+        run = item["run"]
+        metrics = item["metrics"]
+        review = item["review"]
+        model = metrics.get("diagnostics", {}).get("model")
+        mae = metrics.get("diagnostics", {}).get("mae")
+        print(f"{run['run_id']} model={model} rmse={metrics.get('metric_value')} mae={mae} decision={review.get('decision')}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ts-agent", description="Time-series autonomous research loop.")
     parser.add_argument("--root", default=".", help="Workspace root. Defaults to current directory.")
@@ -286,6 +313,18 @@ def build_parser() -> argparse.ArgumentParser:
     demo_tsl.add_argument("--subset-ratio", type=float, default=0.05)
     demo_tsl.add_argument("--train-epochs", type=int, default=1)
     demo_tsl.set_defaults(func=cmd_demo_tsl_simple)
+
+    demo_full = demo_sub.add_parser("full-research", help="Run the complete literature-to-experiment research demo.")
+    demo_full.add_argument("--paper-source", default="/home/xu/autoresearch-agent/knowledge-base/paper-notes")
+    demo_full.add_argument("--literature-limit", type=int, default=50)
+    demo_full.add_argument("--topic", default="forecasting")
+    demo_full.add_argument("--model", action="append", default=[], help="Model to run. Pass multiple times. Defaults to DLinear, PatchTST, MLP.")
+    demo_full.add_argument("--data", default="ETTh1.csv")
+    demo_full.add_argument("--seq-len", type=int, default=24)
+    demo_full.add_argument("--pred-len", type=int, default=24)
+    demo_full.add_argument("--subset-ratio", type=float, default=0.05)
+    demo_full.add_argument("--train-epochs", type=int, default=1)
+    demo_full.set_defaults(func=cmd_demo_full_research)
 
     board_p = subparsers.add_parser("leaderboard", help="Print leaderboard.csv.")
     board_p.set_defaults(func=cmd_leaderboard)

@@ -22,6 +22,7 @@ ts-agent vibe propose --topic forecasting --count 3
 ts-agent taste review --idea vibe_001
 ts-agent loop --budget 2 --backend smoke
 ts-agent demo tsl-simple --model DLinear --model PatchTST --model MLP
+ts-agent demo full-research --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes --model DLinear --model PatchTST --model MLP
 ts-agent run-next --backend dlinear-mini --data-csv examples/sample_series.csv --column value
 ```
 
@@ -47,6 +48,7 @@ find runs -maxdepth 2 -type f | sort
 - `ts-agent loop`: run the autonomous inner loop for a fixed budget.
 - `ts-agent leaderboard`: print the experiment leaderboard.
 - `ts-agent demo tsl-simple`: run a small real Time-Series-Library_simple comparison demo.
+- `ts-agent demo full-research`: run the full literature-to-experiment research agent demo.
 
 ## Runtime Protocol
 
@@ -103,3 +105,25 @@ ts-agent demo tsl-simple --model DLinear --model PatchTST --model MLP --data ETT
 ```
 
 The demo writes standard run artifacts under `runs/run_XXXX/` and a local report at `research_state/tsl_simple_demo_report.md`. Runtime artifacts are intentionally ignored by git.
+
+## Full Research Demo
+
+Run the complete demo from paper notes to real benchmark results:
+
+```bash
+cd /home/xu/ts-auto-research-agent
+ts-agent demo full-research \
+  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
+  --literature-limit 50 \
+  --topic forecasting \
+  --model DLinear \
+  --model PatchTST \
+  --model MLP \
+  --data ETTh1.csv \
+  --seq-len 24 \
+  --pred-len 24 \
+  --subset-ratio 0.05 \
+  --train-epochs 1
+```
+
+The generated local report is `research_state/full_research_demo_report.md`. It includes literature signals, the selected idea, pre-taste scores, real model metrics, post-result review, and the next automated step.
