@@ -11,6 +11,7 @@ from .demo import run_full_research_demo, run_tsl_simple_demo
 from .io_utils import read_json
 from .literature import build_index
 from .loop import parse_last, read_leaderboard, run_loop_budget, run_next
+from .multiagent import read_multiagent_trace, run_research_crew
 from .paths import Workspace
 from .planner import plan_experiment
 from .registry import latest_run_dir
@@ -176,6 +177,45 @@ def cmd_leaderboard(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_multiagent_run(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    paper_source = Path(args.paper_source) if args.paper_source else None
+    trace = run_research_crew(
+        workspace,
+        topic=args.topic,
+        paper_source=paper_source,
+        literature_limit=args.literature_limit,
+        models=args.model,
+        data=args.data,
+        seq_len=args.seq_len,
+        pred_len=args.pred_len,
+        subset_ratio=args.subset_ratio,
+        train_epochs=args.train_epochs,
+        execute_demo=args.execute_demo,
+    )
+    print(f"multiagent_trace={workspace.multiagent_trace_md}")
+    print(f"run_id={trace['run_id']} mode={trace['mode']} selected_idea={trace['selected_idea_id']}")
+    for task in trace["tasks"]:
+        print(f"{task['agent_id']} status={task['status']}")
+    return 0
+
+
+def cmd_multiagent_show(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    trace = read_multiagent_trace(workspace)
+    if not trace:
+        print("no multi-agent trace found")
+        return 1
+    print(f"run_id={trace.get('run_id')} mode={trace.get('mode')} topic={trace.get('topic')}")
+    print(f"selected_idea={trace.get('selected_idea_id')}")
+    for task in trace.get("tasks", []):
+        print(f"{task.get('agent_id')}\t{task.get('status')}\t{task.get('summary')}")
+    command = trace.get("execution_plan", {}).get("command")
+    if command:
+        print("command:")
+        print(command)
+    return 0
+
 def cmd_demo_tsl_simple(args: argparse.Namespace) -> int:
     workspace = _workspace(args)
     result = run_tsl_simple_demo(
@@ -302,6 +342,23 @@ def build_parser() -> argparse.ArgumentParser:
     loop_p.add_argument("--data-csv", default=None)
     loop_p.add_argument("--column", default=None)
     loop_p.set_defaults(func=cmd_loop)
+
+    multi_p = subparsers.add_parser("multiagent", help="Role-based research-agent orchestration commands.")
+    multi_sub = multi_p.add_subparsers(dest="multiagent_command", required=True)
+    multi_run = multi_sub.add_parser("run", help="Run the multi-agent orchestration protocol and write a trace.")
+    multi_run.add_argument("--topic", default="forecasting")
+    multi_run.add_argument("--paper-source", default=None, help="Optional paper-note source directory. Uses existing index when omitted.")
+    multi_run.add_argument("--literature-limit", type=int, default=50)
+    multi_run.add_argument("--model", action="append", default=[], help="Model to include in the staged plan. Defaults to DLinear, PatchTST, MLP.")
+    multi_run.add_argument("--data", default="ETTh1.csv")
+    multi_run.add_argument("--seq-len", type=int, default=24)
+    multi_run.add_argument("--pred-len", type=int, default=24)
+    multi_run.add_argument("--subset-ratio", type=float, default=0.05)
+    multi_run.add_argument("--train-epochs", type=int, default=1)
+    multi_run.add_argument("--execute-demo", action="store_true", help="Run the real full-research demo instead of only staging it.")
+    multi_run.set_defaults(func=cmd_multiagent_run)
+    multi_show = multi_sub.add_parser("show", help="Print the latest multi-agent trace summary.")
+    multi_show.set_defaults(func=cmd_multiagent_show)
 
     demo_p = subparsers.add_parser("demo", help="Presentation-grade demo commands.")
     demo_sub = demo_p.add_subparsers(dest="demo_command", required=True)

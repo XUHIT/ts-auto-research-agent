@@ -13,6 +13,7 @@ from ts_auto_research.assets import filter_assets, scan_assets, write_asset_inve
 from ts_auto_research.literature import build_index, read_index
 from ts_auto_research.loop import run_loop_budget, run_next
 from ts_auto_research.paths import Workspace
+from ts_auto_research.multiagent import read_multiagent_trace, run_research_crew
 from ts_auto_research.reviewer import decide_next_action
 from ts_auto_research.scope import scoped_assets, set_scope
 from ts_auto_research.state import init_workspace
@@ -152,6 +153,30 @@ class CoreLoopTests(unittest.TestCase):
     def test_baseline_anchor_reviewer_continues(self) -> None:
         metrics = {"status": "completed", "metric_value": 1.0, "delta": 0.0, "diagnostics": {"baseline_anchor": True}}
         self.assertEqual(decide_next_action(metrics, {}), "continue")
+
+
+    def test_multiagent_orchestration_writes_recoverable_trace(self) -> None:
+        with TemporaryDirectory() as tmp:
+            workspace = self.workspace(tmp)
+            init_workspace(workspace)
+            source = self.write_note_source(Path(tmp))
+            trace = run_research_crew(
+                workspace,
+                topic="forecasting",
+                paper_source=source,
+                literature_limit=1,
+                models=["DLinear"],
+                execute_demo=False,
+            )
+            self.assertEqual(trace["mode"], "dry-run")
+            self.assertTrue(workspace.multiagent_trace_json.exists())
+            self.assertTrue(workspace.multiagent_trace_md.exists())
+            agent_ids = {task["agent_id"] for task in trace["tasks"]}
+            self.assertIn("literature_curator", agent_ids)
+            self.assertIn("experiment_runner", agent_ids)
+            self.assertIn("synthesis_agent", agent_ids)
+            self.assertIn("ts-agent demo full-research", trace["execution_plan"]["command"])
+            self.assertEqual(read_multiagent_trace(workspace)["run_id"], trace["run_id"])
 
 
 if __name__ == "__main__":

@@ -10,22 +10,27 @@
    - Updates `research_state/leaderboard.csv` and `research_state/trajectory.jsonl` after every run.
    - Queues follow-up variants when a result is worth continuing.
 
-2. Recoverable research protocol
+2. Multi-agent orchestration layer
+   - Splits the research loop into explicit roles: literature curator, idea scout, taste reviewer, scope manager, experiment planner, experiment runner, result reviewer, and synthesis agent.
+   - Writes `research_state/multiagent_trace.json` and `research_state/multiagent_trace.md` so orchestration is inspectable and resumable.
+   - Starts as a deterministic local protocol and can later swap individual roles for LLM-backed agents without changing the run artifacts.
+
+3. Recoverable research protocol
    - Every run is recoverable from files under `runs/run_XXXX/`.
    - Required protocol files are generated every time: `vibe_idea.yaml`, `taste_pre.yaml`, `experiment_plan.yaml`, `command.sh`, `metrics.json`, `taste_post.yaml`, and `review.md`.
    - Reviewer decisions are constrained to `continue`, `kill`, `pivot`, or `needs_human_confirmation`.
 
-3. Time-series literature substrate
+4. Time-series literature substrate
    - The paper-note index is read-only input.
    - It provides idea context, baseline hints, novelty warnings, and venue/taste signals.
    - It does not import or reuse the old time-series agent workflow code.
 
-4. Vibe/taste layer
+5. Vibe/taste layer
    - Pre-run taste scores decide whether an idea deserves an experiment.
    - Post-run taste evaluates whether the result changes belief, contains surprise, or supports a claim.
    - This prevents the loop from becoming blind hyperparameter search.
 
-5. External asset substrate
+6. External asset substrate
    - Server-side papers, datasets, baseline repositories, checkpoints, scripts, and environments are discovered into a local runtime registry.
    - The core agent stores asset IDs and adapters, not copied data or external code.
 
@@ -43,6 +48,8 @@ research_state/
   experiment_queue.yaml
   leaderboard.csv
   trajectory.jsonl
+  multiagent_trace.json
+  multiagent_trace.md
   claims.json
   claims.yaml
 

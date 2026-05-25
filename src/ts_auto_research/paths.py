@@ -66,7 +66,13 @@ class Workspace:
     def queue_json(self) -> Path:
         return self.research_state / "experiment_queue.json"
 
+    @property
+    def multiagent_trace_json(self) -> Path:
+        return self.research_state / "multiagent_trace.json"
 
+    @property
+    def multiagent_trace_md(self) -> Path:
+        return self.research_state / "multiagent_trace.md"
 
     @property
     def scope_yaml(self) -> Path:

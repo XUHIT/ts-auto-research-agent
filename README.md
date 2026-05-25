@@ -5,6 +5,7 @@
 - Metric-driven experiment trajectory loops.
 - Recoverable file protocols, review checkpoints, and resumable artifacts.
 - A read-only time-series literature substrate built from curated top-venue paper notes.
+- Role-based multi-agent orchestration for literature, idea, taste, planning, execution, review, and synthesis roles.
 - Vibe and taste gates before and after experiments, so the agent does research instead of blind benchmark sweeping.
 
 The system is designed as a clean-room time-series research loop: ideas are proposed, scored, executed, reviewed, and carried forward only when results change the research trajectory.
@@ -22,6 +23,7 @@ ts-agent vibe propose --topic forecasting --count 3
 ts-agent taste review --idea vibe_001
 ts-agent loop --budget 2 --backend smoke
 ts-agent demo tsl-simple --model DLinear --model PatchTST --model MLP
+ts-agent multiagent run --topic forecasting --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes
 ts-agent demo full-research --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes --model DLinear --model PatchTST --model MLP
 ts-agent run-next --backend dlinear-mini --data-csv examples/sample_series.csv --column value
 ```
@@ -47,6 +49,7 @@ find runs -maxdepth 2 -type f | sort
 - `ts-agent review-last`: produce a strict action decision for the latest run.
 - `ts-agent loop`: run the autonomous inner loop for a fixed budget.
 - `ts-agent leaderboard`: print the experiment leaderboard.
+- `ts-agent multiagent run/show`: run and inspect the role-based orchestration trace.
 - `ts-agent demo tsl-simple`: run a small real Time-Series-Library_simple comparison demo.
 - `ts-agent demo full-research`: run the full literature-to-experiment research agent demo.
 
@@ -75,6 +78,8 @@ research_state/vibe_ideas.yaml
 research_state/taste_reviews.yaml
 research_state/experiment_queue.yaml
 research_state/claims.yaml
+research_state/multiagent_trace.json
+research_state/multiagent_trace.md
 ```
 
 ## Backends
@@ -93,6 +98,7 @@ research_state/claims.yaml
 - `docs/ARCHITECTURE.md`: system layers, state layout, and backend contract.
 - `docs/PROTOCOL.md`: experiment protocol, taste gates, and reviewer outputs.
 - `docs/ASSET_INTEGRATION.md`: how server-side papers, data, baselines, checkpoints, and environments enter the agent without being copied into the repo.
+- `docs/MULTI_AGENT_ORCHESTRATION.md`: role-based agent orchestration, trace files, and extension path.
 - `IMPLEMENTATION_REPORT.md`: implemented scope, validation results, and current GitHub publication blocker.
 
 ## Presentation Demo
