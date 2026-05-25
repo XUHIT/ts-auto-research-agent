@@ -10,6 +10,8 @@ ALLOWED_ACTIONS = {"continue", "kill", "pivot", "needs_human_confirmation"}
 def decide_next_action(metrics: dict[str, Any], taste_post: dict[str, Any]) -> str:
     if metrics.get("status") == "blocked":
         return "needs_human_confirmation"
+    if metrics.get("diagnostics", {}).get("baseline_anchor"):
+        return "continue"
     delta = metrics.get("delta")
     metric = metrics.get("metric_value")
     if metric is None or delta is None:
@@ -45,6 +47,8 @@ def _rationale(decision: str, metrics: dict[str, Any], taste_post: dict[str, Any
     if decision == "needs_human_confirmation":
         return metrics.get("blocker", "The run needs a human decision before the loop can continue.")
     if decision == "continue":
+        if metrics.get("diagnostics", {}).get("baseline_anchor"):
+            return "Baseline anchor established for the controlled comparison suite."
         return "Metric improved and post-taste suggests the result can support a research trajectory."
     if decision == "kill":
         return "The run did not improve the metric and did not create enough surprise to justify more budget."

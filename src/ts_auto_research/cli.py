@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 
 from .assets import filter_assets, scan_assets, write_asset_inventory
+from .demo import run_tsl_simple_demo
 from .io_utils import read_json
 from .literature import build_index
 from .loop import parse_last, read_leaderboard, run_loop_budget, run_next
@@ -175,6 +176,28 @@ def cmd_leaderboard(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_demo_tsl_simple(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    result = run_tsl_simple_demo(
+        workspace,
+        models=args.model,
+        data=args.data,
+        seq_len=args.seq_len,
+        pred_len=args.pred_len,
+        subset_ratio=args.subset_ratio,
+        train_epochs=args.train_epochs,
+    )
+    print(f"demo_report={result['report_path']}")
+    for item in result["results"]:
+        run = item["run"]
+        metrics = item["metrics"]
+        review = item["review"]
+        model = metrics.get("diagnostics", {}).get("model")
+        mae = metrics.get("diagnostics", {}).get("mae")
+        print(f"{run['run_id']} model={model} rmse={metrics.get('metric_value')} mae={mae} decision={review.get('decision')}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ts-agent", description="Time-series autonomous research loop.")
     parser.add_argument("--root", default=".", help="Workspace root. Defaults to current directory.")
@@ -229,11 +252,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     plan_p = subparsers.add_parser("plan-experiment", help="Queue an experiment plan for an idea.")
     plan_p.add_argument("--idea", required=True)
-    plan_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini"])
+    plan_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini", "tsl-simple"])
     plan_p.set_defaults(func=cmd_plan_experiment)
 
     run_p = subparsers.add_parser("run-next", help="Run the next queued or seeded experiment.")
-    run_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini"])
+    run_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini", "tsl-simple"])
     run_p.add_argument("--topic", default="forecasting")
     run_p.add_argument("--data-csv", default=None)
     run_p.add_argument("--column", default=None)
@@ -247,11 +270,22 @@ def build_parser() -> argparse.ArgumentParser:
 
     loop_p = subparsers.add_parser("loop", help="Run a bounded autonomous experiment loop.")
     loop_p.add_argument("--budget", type=int, required=True)
-    loop_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini"])
+    loop_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini", "tsl-simple"])
     loop_p.add_argument("--topic", default="forecasting")
     loop_p.add_argument("--data-csv", default=None)
     loop_p.add_argument("--column", default=None)
     loop_p.set_defaults(func=cmd_loop)
+
+    demo_p = subparsers.add_parser("demo", help="Presentation-grade demo commands.")
+    demo_sub = demo_p.add_subparsers(dest="demo_command", required=True)
+    demo_tsl = demo_sub.add_parser("tsl-simple", help="Run a small real Time-Series-Library_simple comparison demo.")
+    demo_tsl.add_argument("--model", action="append", default=[], help="Model to run. Pass multiple times. Defaults to DLinear, PatchTST, MLP.")
+    demo_tsl.add_argument("--data", default="ETTh1.csv")
+    demo_tsl.add_argument("--seq-len", type=int, default=24)
+    demo_tsl.add_argument("--pred-len", type=int, default=24)
+    demo_tsl.add_argument("--subset-ratio", type=float, default=0.05)
+    demo_tsl.add_argument("--train-epochs", type=int, default=1)
+    demo_tsl.set_defaults(func=cmd_demo_tsl_simple)
 
     board_p = subparsers.add_parser("leaderboard", help="Print leaderboard.csv.")
     board_p.set_defaults(func=cmd_leaderboard)
