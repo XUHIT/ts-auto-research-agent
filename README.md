@@ -10,6 +10,23 @@
 
 The system is designed as a clean-room time-series research loop: ideas are proposed, scored, executed, reviewed, and carried forward only when results change the research trajectory.
 
+## At A Glance
+
+```text
+50 paper notes -> taste-gated idea -> 3 real Time-Series-Library_simple runs
+PatchTST: RMSE 0.59777755, delta +0.0072025 -> continue
+MLP: RMSE 0.77158123, delta -0.16660118 -> kill
+Next: continue from PatchTST and deepen the benchmark question
+```
+
+Run the one-screen interaction after any demo:
+
+```bash
+ts-agent showcase
+```
+
+The showcase makes the effect, novelty, and usefulness visible immediately: literature context feeds ideas, taste gates prevent blind sweeping, real metrics decide what survives, and every decision is recoverable.
+
 ## Target Server Quick Start
 
 The primary delivery target is the A20CPolar server, not an arbitrary clean machine. The validated closed-loop demo uses the server GPU, the server paper-note knowledge base, and the local Time-Series-Library_simple benchmark repository.
@@ -18,6 +35,7 @@ The primary delivery target is the A20CPolar server, not an arbitrary clean mach
 cd /home/xu/ts-auto-research-agent
 /home/xu/anaconda3/bin/python -m pip install -e .
 ts-agent demo full-research
+ts-agent showcase
 ```
 
 The default server demo reads paper notes from `/home/xu/autoresearch-agent/knowledge-base/paper-notes`, runs Time-Series-Library_simple from `/home/xu/pytorch_projects/my_time_series_lab/Time-Series-Library_simple`, and writes `research_state/full_research_demo_report.md`.
@@ -51,6 +69,7 @@ find runs -maxdepth 2 -type f | sort
 - `ts-agent review-last`: produce a strict action decision for the latest run.
 - `ts-agent loop`: run the autonomous inner loop for a fixed budget.
 - `ts-agent leaderboard`: print the experiment leaderboard.
+- `ts-agent showcase`: print a one-screen effect, novelty, usefulness, and result summary.
 - `ts-agent multiagent run/show`: run and inspect the role-based orchestration trace.
 - `ts-agent demo public-mini`: run the complete clone-local demo with bundled notes and CSV data.
 - `ts-agent demo tsl-simple`: run a small real Time-Series-Library_simple comparison demo.
@@ -83,6 +102,7 @@ research_state/experiment_queue.yaml
 research_state/claims.yaml
 research_state/multiagent_trace.json
 research_state/multiagent_trace.md
+research_state/showcase.md
 ```
 
 ## Backends
@@ -104,6 +124,7 @@ research_state/multiagent_trace.md
 - `docs/MULTI_AGENT_ORCHESTRATION.md`: role-based agent orchestration, trace files, and extension path.
 - `docs/SERVER_ENVIRONMENT.md`: target GPU, conda, CUDA, paths, and active scope.
 - `docs/SERVER_CLOSED_LOOP_DEMO.md`: validated server-backed closed-loop demo and latest metrics.
+- `docs/SHOWCASE.md`: how the first-screen interaction communicates effect, novelty, and usefulness.
 - `docs/PUBLIC_DEMO.md`: optional portable smoke demo for first-time users.
 - `IMPLEMENTATION_REPORT.md`: delivered scope, validation commands, and remaining product work.
 

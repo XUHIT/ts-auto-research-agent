@@ -106,3 +106,13 @@ docs/demo_results/run_artifacts_tree.txt
 ```
 
 The snapshot shows the final effect of the complete demo while keeping raw runtime state local.
+
+## One-Screen Showcase
+
+After the server demo, run:
+
+```bash
+ts-agent showcase
+```
+
+This prints the effect, novelty, usefulness, latest metrics, reviewer decisions, and next action in one screen.

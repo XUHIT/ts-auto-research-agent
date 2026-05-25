@@ -19,6 +19,7 @@ from ts_auto_research.paths import Workspace
 from ts_auto_research.multiagent import read_multiagent_trace, run_research_crew
 from ts_auto_research.reviewer import decide_next_action
 from ts_auto_research.scope import scoped_assets, set_scope
+from ts_auto_research.showcase import build_showcase
 from ts_auto_research.state import init_workspace
 from ts_auto_research.taste import review_idea
 from ts_auto_research.vibe import propose_vibes
@@ -206,6 +207,9 @@ class CoreLoopTests(unittest.TestCase):
             self.assertEqual(len(runner["data"]["run_ids"]), 1)
             run_id = runner["data"]["run_ids"][0]
             self.assertTrue(workspace.run_dir(run_id).joinpath("review.md").exists())
+            showcase = build_showcase(workspace)
+            self.assertIn("effect", showcase)
+            self.assertTrue(workspace.showcase_md.exists())
 
 
     def test_full_research_cli_uses_server_defaults(self) -> None:

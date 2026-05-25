@@ -46,9 +46,9 @@ Validated on May 25, 2026 in `/home/xu/ts-auto-research-agent`:
 
 | Run | Model | RMSE | MAE | Baseline | Delta | Decision |
 |---|---|---:|---:|---:|---:|---|
-| `run_0015` | `DLinear` | `0.60498005` | `0.38604552` | `0.60498005` | `0.0` | `continue` |
-| `run_0016` | `PatchTST` | `0.59777755` | `0.38496944` | `0.60498005` | `0.0072025` | `continue` |
-| `run_0017` | `MLP` | `0.77158123` | `0.56779635` | `0.60498005` | `-0.16660118` | `kill` |
+| `run_0018` | `DLinear` | `0.60498005` | `0.38604552` | `0.60498005` | `0.0` | `continue` |
+| `run_0019` | `PatchTST` | `0.59777755` | `0.38496944` | `0.60498005` | `0.0072025` | `continue` |
+| `run_0020` | `MLP` | `0.77158123` | `0.56779635` | `0.60498005` | `-0.16660118` | `kill` |
 
 ## Generated Artifacts
 
@@ -56,9 +56,9 @@ Validated on May 25, 2026 in `/home/xu/ts-auto-research-agent`:
 research_state/full_research_demo_report.md
 research_state/leaderboard.csv
 research_state/trajectory.jsonl
-runs/run_0015/
-runs/run_0016/
-runs/run_0017/
+runs/run_0018/
+runs/run_0019/
+runs/run_0020/
 ```
 
 Each run directory contains the recoverable protocol files: idea, pre-taste, experiment plan, command, stdout/stderr logs, metrics, post-taste, and review.
@@ -66,3 +66,13 @@ Each run directory contains the recoverable protocol files: idea, pre-taste, exp
 ## Interpretation
 
 This is not a final scientific claim. It is the validated delivery demo: the agent moves from server literature resources to a taste-gated idea, executes real time-series benchmark runs, parses metrics, updates a trajectory, and makes review decisions on the target GPU environment.
+
+## One-Screen Showcase
+
+After the server demo, run:
+
+```bash
+ts-agent showcase
+```
+
+This prints the effect, novelty, usefulness, latest metrics, reviewer decisions, and next action in one screen.

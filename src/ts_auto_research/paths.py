@@ -75,6 +75,14 @@ class Workspace:
         return self.research_state / "multiagent_trace.md"
 
     @property
+    def showcase_json(self) -> Path:
+        return self.research_state / "showcase.json"
+
+    @property
+    def showcase_md(self) -> Path:
+        return self.research_state / "showcase.md"
+
+    @property
     def scope_yaml(self) -> Path:
         return self.research_state / "experiment_scope.yaml"
 

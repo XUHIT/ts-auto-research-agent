@@ -15,6 +15,7 @@ from .multiagent import read_multiagent_trace, run_research_crew
 from .paths import Workspace
 from .planner import plan_experiment
 from .registry import latest_run_dir
+from .showcase import build_showcase, render_showcase_terminal
 from .scope import get_scope, scoped_assets, set_scope
 from .state import init_workspace
 from .taste import review_idea
@@ -177,6 +178,13 @@ def cmd_leaderboard(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_showcase(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    showcase = build_showcase(workspace)
+    print(render_showcase_terminal(showcase), end="")
+    return 0
+
+
 def cmd_multiagent_run(args: argparse.Namespace) -> int:
     workspace = _workspace(args)
     paper_source = Path(args.paper_source) if args.paper_source else None
@@ -283,6 +291,8 @@ def cmd_demo_full_research(args: argparse.Namespace) -> int:
         model = metrics.get("diagnostics", {}).get("model")
         mae = metrics.get("diagnostics", {}).get("mae")
         print(f"{run['run_id']} model={model} rmse={metrics.get('metric_value')} mae={mae} decision={review.get('decision')}")
+    showcase = build_showcase(workspace)
+    print(render_showcase_terminal(showcase), end="")
     return 0
 
 
@@ -418,6 +428,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     board_p = subparsers.add_parser("leaderboard", help="Print leaderboard.csv.")
     board_p.set_defaults(func=cmd_leaderboard)
+
+    showcase_p = subparsers.add_parser("showcase", help="Print a one-screen effect, novelty, usefulness, and results summary.")
+    showcase_p.set_defaults(func=cmd_showcase)
     return parser
 
 
