@@ -9,6 +9,7 @@
 - Role-based multi-agent orchestration with trace artifacts.
 - `smoke`, `dlinear-mini`, and `tsl-simple` backend paths.
 - Server benchmark demo: `ts-agent demo full-research`.
+- Visual delivery generation: `ts-agent report`.
 - Optional portable smoke check: `ts-agent demo public-mini`.
 - Method-role cards for baseline anchor, strong reference, and innovation candidate.
 - Unit tests and GitHub Actions workflow.
@@ -21,6 +22,7 @@ The delivery demo is a single ETTh1 benchmark study on the target server:
 cd /home/xu/ts-auto-research-agent
 ts-agent demo full-research
 ts-agent showcase
+ts-agent report
 ```
 
 Validated result:
@@ -32,6 +34,18 @@ Validated result:
 | innovation candidate | CalDLinear | 0.59605795 | 0.38774657 | +0.00221968 | continue |
 
 Interpretation: CalDLinear is a bounded positive innovation candidate against DLinear on RMSE, but PatchTST remains the stronger reference. The next step is ablation and broader validation.
+
+## Visual Delivery
+
+Generated and committed public-safe artifacts:
+
+```text
+docs/demo_results/dashboard.html
+docs/demo_results/monitor.html
+docs/demo_results/benchmark_report.pdf
+docs/demo_results/figures/benchmark_metrics.svg
+docs/demo_results/figures/delta_vs_dlinear.svg
+```
 
 ## Optional Smoke Check
 
@@ -51,6 +65,7 @@ python -m compileall src tests
 python -m unittest discover -s tests -v
 ts-agent demo full-research
 ts-agent showcase
+ts-agent report
 ```
 
 ## Remaining Product Work

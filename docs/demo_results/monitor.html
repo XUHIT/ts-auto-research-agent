@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="30">
+  <title>TS Auto Research Agent Monitor</title>
+  <style>
+    :root { --ink:#1a202c; --muted:#4a5568; --line:#d7dee8; --panel:#f7fafc; --accent:#c05621; }
+    body { margin:0; font-family: Inter, Arial, Helvetica, sans-serif; color:var(--ink); background:#ffffff; }
+    main { max-width:1180px; margin:0 auto; padding:28px 24px 48px; }
+    header { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:22px; }
+    h1 { font-size:30px; line-height:1.15; margin:0 0 10px; letter-spacing:0; }
+    h2 { font-size:18px; margin:28px 0 12px; }
+    p { color:var(--muted); line-height:1.55; }
+    .effect { font-size:17px; color:#2d3748; max-width:960px; }
+    .grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:14px; margin:18px 0; }
+    .card { border:1px solid var(--line); border-radius:8px; padding:14px 16px; background:#fff; }
+    .card .k { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .card .v { margin-top:8px; font-size:22px; font-weight:700; }
+    .claim { border-left:5px solid var(--accent); background:#fff7ed; padding:14px 16px; border-radius:6px; }
+    .chart-grid { display:grid; grid-template-columns:1fr; gap:18px; }
+    .chart { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fff; overflow:auto; }
+    .chart img { max-width:100%; height:auto; display:block; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
+    th, td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top; }
+    th { color:#2d3748; background:var(--panel); font-weight:700; }
+    .badge { display:inline-block; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; background:#edf2f7; }
+    .role-baseline_anchor { background:#edf2f7; color:#2d3748; }
+    .role-strong_reference { background:#ebf8ff; color:#2b6cb0; }
+    .role-innovation_candidate { background:#fff7ed; color:#c05621; }
+    ol.evidence { padding-left:22px; }
+    ol.evidence li { margin:0 0 12px; }
+    ol.evidence span { color:var(--muted); font-size:13px; }
+    ol.evidence p { margin:4px 0 0; }
+    footer { margin-top:34px; color:var(--muted); font-size:13px; }
+    @media (max-width: 760px) { .grid { grid-template-columns:1fr; } main { padding:20px 14px 36px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>TS Auto Research Agent Monitor</h1>
+    <div class="effect">1000 paper notes -&gt; locked ETTh1 benchmark -&gt; DLinear baseline 0.59827763 -&gt; CalDLinear improves rmse by 0.00221968. PatchTST remains the stronger reference, so the claim stays bounded.</div>
+  </header>
+
+  <section class="grid">
+    <div class="card"><div class="k">Baseline</div><div class="v">DLinear</div><p>RMSE 0.59827763 / MAE 0.38131171</p></div>
+    <div class="card"><div class="k">Strong reference</div><div class="v">PatchTST</div><p>RMSE 0.58627319 / MAE 0.37807289</p></div>
+    <div class="card"><div class="k">Innovation candidate</div><div class="v">CalDLinear</div><p>RMSE 0.59605795 / MAE 0.38774657</p></div>
+  </section>
+
+  <section class="claim">
+    <strong>Current claim.</strong> CalDLinear improves RMSE over DLinear by 0.00221968, but PatchTST remains stronger. This is a bounded candidate, not a SOTA claim.
+  </section>
+
+  <section class="chart-grid">
+    <div class="chart"><img src="figures/benchmark_metrics.svg" alt="RMSE and MAE by method"></div>
+    <div class="chart"><img src="figures/delta_vs_dlinear.svg" alt="Delta vs DLinear baseline"></div>
+  </section>
+
+  <section>
+    <h2>Benchmark Rows</h2>
+    <table>
+      <thead><tr><th>Run</th><th>Role</th><th>Model</th><th>RMSE</th><th>MAE</th><th>Delta</th><th>Decision</th></tr></thead>
+      <tbody><tr><td><code>run_0048</code></td><td><span class="badge role-baseline_anchor">baseline_anchor</span></td><td>DLinear</td><td>0.59827763</td><td>0.38131171</td><td>0</td><td>continue</td></tr>
+<tr><td><code>run_0049</code></td><td><span class="badge role-strong_reference">strong_reference</span></td><td>PatchTST</td><td>0.58627319</td><td>0.37807289</td><td>0.01200444</td><td>continue</td></tr>
+<tr><td><code>run_0050</code></td><td><span class="badge role-innovation_candidate">innovation_candidate</span></td><td>CalDLinear</td><td>0.59605795</td><td>0.38774657</td><td>0.00221968</td><td>continue</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Literature Evidence</h2>
+    <ol class="evidence"><li><strong>APT: Affine Prototype-Timestamp For Time Series Forecasting Under Distribution Shift</strong> <span>AAAI_2026</span><p>Prototype or timestamp-conditioned affine structure motivates using known horizon context instead of only local instance statistics.</p></li>
+<li><strong>Reversible Instance Normalization for Accurate Time-Series Forecasting Against Distribution Shift</strong> <span>ICLR_2022</span><p>Reversible normalization can help distribution shift, but its lookback-to-horizon statistic assumption must be tested.</p></li>
+<li><strong>A Time Series is Worth 64 Words: Long-term Forecasting with Transformers (PatchTST)</strong> <span>ICLR_2023</span><p>Patch-based strong references prevent overstating a DLinear-only improvement.</p></li>
+<li><strong>An Analysis of Linear Time Series Forecasting Models</strong> <span>ICML_2024</span><p>Recent linear-model analysis suggests constraints, normalization, and simple residual structure may matter more than adding heavy backbones.</p></li>
+<li><strong>SIN: Selective and Interpretable Normalization for Long-Term Time Series Forecasting</strong> <span>ICML_2024</span><p>Selective normalization argues against one fixed statistic for every series and motivates gated lightweight adapters.</p></li></ol>
+  </section>
+
+  <section>
+    <h2>Next Action</h2>
+    <p>Deepen `CalDLinear` with ablations and more datasets before making a paper-level claim.</p>
+  </section>
+
+  <footer>Generated at 2026-05-25 11:03:55 UTC from the local benchmark trajectory.</footer>
+</main>
+</body>
+</html>

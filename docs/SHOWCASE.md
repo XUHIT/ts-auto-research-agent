@@ -41,3 +41,13 @@ Generated files:
 research_state/showcase.json
 research_state/showcase.md
 ```
+
+## Visual Report Command
+
+For the final presentation artifacts, run:
+
+```bash
+ts-agent report
+```
+
+This writes `dashboard.html`, `monitor.html`, `benchmark_report.pdf`, and SVG figures under `docs/demo_results/`.

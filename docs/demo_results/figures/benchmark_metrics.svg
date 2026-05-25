@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360" role="img">
+<style>
+.title{font:600 18px Arial,Helvetica,sans-serif;fill:#1A202C}
+.label{font:600 12px Arial,Helvetica,sans-serif;fill:#2D3748}
+.axis{font:400 11px Arial,Helvetica,sans-serif;fill:#4A5568}
+.value{font:600 11px Arial,Helvetica,sans-serif;fill:#1A202C}
+</style>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="72" y="24" class="title">RMSE and MAE by method</text>
+<line x1="72" y1="290" x2="872" y2="290" stroke="#CBD5E0"/>
+<line x1="72" y1="36" x2="72" y2="290" stroke="#CBD5E0"/>
+<line x1="72" y1="290.00" x2="872" y2="290.00" stroke="#EDF2F7"/>
+<text x="62" y="294.00" text-anchor="end" class="axis">0.00</text>
+<line x1="72" y1="226.50" x2="872" y2="226.50" stroke="#EDF2F7"/>
+<text x="62" y="230.50" text-anchor="end" class="axis">0.17</text>
+<line x1="72" y1="163.00" x2="872" y2="163.00" stroke="#EDF2F7"/>
+<text x="62" y="167.00" text-anchor="end" class="axis">0.34</text>
+<line x1="72" y1="99.50" x2="872" y2="99.50" stroke="#EDF2F7"/>
+<text x="62" y="103.50" text-anchor="end" class="axis">0.52</text>
+<line x1="72" y1="36.00" x2="872" y2="36.00" stroke="#EDF2F7"/>
+<text x="62" y="40.00" text-anchor="end" class="axis">0.69</text>
+<rect x="168.33" y="69.13" width="34.00" height="220.87" rx="3" fill="#4A5568"/>
+<text x="185.33" y="63.13" text-anchor="middle" class="value">0.59827763</text>
+<rect x="208.33" y="149.23" width="34.00" height="140.77" rx="3" fill="#A0AEC0"/>
+<text x="205.33" y="322" text-anchor="middle" class="label">DLinear</text>
+<text x="205.33" y="340" text-anchor="middle" class="axis">baseline_anchor</text>
+<rect x="435.00" y="73.56" width="34.00" height="216.44" rx="3" fill="#2B6CB0"/>
+<text x="452.00" y="67.56" text-anchor="middle" class="value">0.58627319</text>
+<rect x="475.00" y="150.42" width="34.00" height="139.58" rx="3" fill="#A0AEC0"/>
+<text x="472.00" y="322" text-anchor="middle" class="label">PatchTST</text>
+<text x="472.00" y="340" text-anchor="middle" class="axis">strong_reference</text>
+<rect x="701.67" y="69.95" width="34.00" height="220.05" rx="3" fill="#C05621"/>
+<text x="718.67" y="63.95" text-anchor="middle" class="value">0.59605795</text>
+<rect x="741.67" y="146.85" width="34.00" height="143.15" rx="3" fill="#A0AEC0"/>
+<text x="738.67" y="322" text-anchor="middle" class="label">CalDLinear</text>
+<text x="738.67" y="340" text-anchor="middle" class="axis">innovation_candidate</text>
+<rect x="690" y="18" width="14" height="14" rx="2" fill="#2B6CB0"/><text x="710" y="30" class="axis">Role-colored RMSE</text>
+<rect x="690" y="40" width="14" height="14" rx="2" fill="#A0AEC0"/><text x="710" y="52" class="axis">MAE</text>
+</svg>

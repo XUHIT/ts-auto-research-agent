@@ -67,3 +67,22 @@ runs/run_0048/
 runs/run_0049/
 runs/run_0050/
 ```
+
+
+## Visual Report
+
+Generate the final presentation artifacts with:
+
+```bash
+ts-agent report
+```
+
+Outputs:
+
+```text
+docs/demo_results/dashboard.html
+docs/demo_results/monitor.html
+docs/demo_results/benchmark_report.pdf
+docs/demo_results/figures/benchmark_metrics.svg
+docs/demo_results/figures/delta_vs_dlinear.svg
+```

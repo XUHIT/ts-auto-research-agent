@@ -9,6 +9,7 @@ cd /home/xu/ts-auto-research-agent
 /home/xu/anaconda3/bin/python -m pip install -e .
 ts-agent demo full-research
 ts-agent showcase
+ts-agent report
 ```
 
 Defaults:
@@ -47,6 +48,18 @@ ts-agent demo full-research \
 | innovation candidate | CalDLinear | 0.59605795 | 0.38774657 | +0.00221968 | continue |
 
 Interpretation: CalDLinear is a bounded positive candidate against DLinear on RMSE, but PatchTST remains stronger. The next step is ablation and broader validation, not a SOTA claim.
+
+## Visual Artifacts
+
+```text
+docs/demo_results/dashboard.html
+docs/demo_results/monitor.html
+docs/demo_results/benchmark_report.pdf
+docs/demo_results/figures/benchmark_metrics.svg
+docs/demo_results/figures/delta_vs_dlinear.svg
+```
+
+The dashboard is the primary interactive-looking static view. The monitor page includes auto-refresh metadata for local monitoring snapshots. The PDF is the formal benchmark report.
 
 ## Expected Artifacts
 

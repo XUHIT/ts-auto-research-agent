@@ -1,0 +1,85 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Length 3733 >>
+stream
+BT /F2 18 Tf 54.00 750.00 Td (TS Auto Research Agent Benchmark Report) Tj ET
+BT /F1 10 Tf 54.00 720.00 Td (1000 paper notes -> locked ETTh1 benchmark -> DLinear baseline 0.59827763 ->) Tj ET
+BT /F1 10 Tf 54.00 706.00 Td (CalDLinear improves rmse by 0.00221968. PatchTST remains the stronger reference, so) Tj ET
+BT /F1 10 Tf 54.00 692.00 Td (the claim stays bounded.) Tj ET
+BT /F2 13 Tf 54.00 666.00 Td (Current Claim) Tj ET
+BT /F1 10 Tf 54.00 648.00 Td (CalDLinear improves RMSE over DLinear by 0.00221968, but PatchTST remains stronger. This is) Tj ET
+BT /F1 10 Tf 54.00 634.00 Td (a bounded candidate, not a SOTA claim.) Tj ET
+BT /F2 13 Tf 54.00 604.00 Td (Benchmark Results) Tj ET
+0.929 0.949 0.969 rg 54.00 578.00 480.00 20.00 re f
+BT /F2 8 Tf 58.00 584.00 Td (Role) Tj ET
+BT /F2 8 Tf 168.00 584.00 Td (Model) Tj ET
+BT /F2 8 Tf 250.00 584.00 Td (RMSE) Tj ET
+BT /F2 8 Tf 320.00 584.00 Td (MAE) Tj ET
+BT /F2 8 Tf 390.00 584.00 Td (Delta) Tj ET
+BT /F2 8 Tf 460.00 584.00 Td (Decision) Tj ET
+BT /F1 8 Tf 58.00 560.00 Td (baseline_anchor) Tj ET
+BT /F1 8 Tf 168.00 560.00 Td (DLinear) Tj ET
+BT /F1 8 Tf 250.00 560.00 Td (0.59827763) Tj ET
+BT /F1 8 Tf 320.00 560.00 Td (0.38131171) Tj ET
+BT /F1 8 Tf 390.00 560.00 Td (0) Tj ET
+BT /F1 8 Tf 460.00 560.00 Td (continue) Tj ET
+BT /F1 8 Tf 58.00 542.00 Td (strong_reference) Tj ET
+BT /F1 8 Tf 168.00 542.00 Td (PatchTST) Tj ET
+BT /F1 8 Tf 250.00 542.00 Td (0.58627319) Tj ET
+BT /F1 8 Tf 320.00 542.00 Td (0.37807289) Tj ET
+BT /F1 8 Tf 390.00 542.00 Td (0.01200444) Tj ET
+BT /F1 8 Tf 460.00 542.00 Td (continue) Tj ET
+BT /F1 8 Tf 58.00 524.00 Td (innovation_candidate) Tj ET
+BT /F1 8 Tf 168.00 524.00 Td (CalDLinear) Tj ET
+BT /F1 8 Tf 250.00 524.00 Td (0.59605795) Tj ET
+BT /F1 8 Tf 320.00 524.00 Td (0.38774657) Tj ET
+BT /F1 8 Tf 390.00 524.00 Td (0.00221968) Tj ET
+BT /F1 8 Tf 460.00 524.00 Td (continue) Tj ET
+BT /F2 13 Tf 54.00 462.00 Td (Literature Evidence) Tj ET
+BT /F1 8.5 Tf 64.00 444.00 Td (- APT: Affine Prototype-Timestamp For Time Series Forecasting Under Distribution Shift \(AAAI_2026\):) Tj ET
+BT /F1 8.5 Tf 64.00 431.50 Td (Prototype or timestamp-conditioned affine structure motivates using known horizon context instead of only) Tj ET
+BT /F1 8.5 Tf 64.00 419.00 Td (local instance statistics.) Tj ET
+BT /F1 8.5 Tf 64.00 401.50 Td (- Reversible Instance Normalization for Accurate Time-Series Forecasting Against Distribution Shift) Tj ET
+BT /F1 8.5 Tf 64.00 389.00 Td (\(ICLR_2022\): Reversible normalization can help distribution shift, but its lookback-to-horizon statistic) Tj ET
+BT /F1 8.5 Tf 64.00 376.50 Td (assumption must be tested.) Tj ET
+BT /F1 8.5 Tf 64.00 359.00 Td (- A Time Series is Worth 64 Words: Long-term Forecasting with Transformers \(PatchTST\) \(ICLR_2023\): Patch-) Tj ET
+BT /F1 8.5 Tf 64.00 346.50 Td (based strong references prevent overstating a DLinear-only improvement.) Tj ET
+BT /F1 8.5 Tf 64.00 329.00 Td (- An Analysis of Linear Time Series Forecasting Models \(ICML_2024\): Recent linear-model analysis suggests) Tj ET
+BT /F1 8.5 Tf 64.00 316.50 Td (constraints, normalization, and simple residual structure may matter more than adding heavy backbones.) Tj ET
+BT /F1 8.5 Tf 64.00 299.00 Td (- SIN: Selective and Interpretable Normalization for Long-Term Time Series Forecasting \(ICML_2024\):) Tj ET
+BT /F1 8.5 Tf 64.00 286.50 Td (Selective normalization argues against one fixed statistic for every series and motivates gated) Tj ET
+BT /F1 8.5 Tf 64.00 274.00 Td (lightweight adapters.) Tj ET
+BT /F2 13 Tf 54.00 248.50 Td (Next Action) Tj ET
+BT /F1 10 Tf 54.00 230.50 Td (Deepen `CalDLinear` with ablations and more datasets before making a paper-level claim.) Tj ET
+BT /F1 8 Tf 54.00 36.00 Td (Generated at 2026-05-25 11:03:55 UTC) Tj ET
+endstream
+endobj
+4 0 obj
+<< /Type /Page /Parent 5 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 3 0 R >>
+endobj
+5 0 obj
+<< /Type /Pages /Kids [4 0 R] /Count 1 >>
+endobj
+6 0 obj
+<< /Type /Catalog /Pages 5 0 R >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000000154 00000 n 
+0000003939 00000 n 
+0000004075 00000 n 
+0000004132 00000 n 
+trailer
+<< /Size 7 /Root 6 0 R >>
+startxref
+4181
+%%EOF

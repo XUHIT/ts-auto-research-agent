@@ -15,6 +15,7 @@ from .multiagent import read_multiagent_trace, run_research_crew
 from .paths import Workspace
 from .planner import plan_experiment
 from .registry import latest_run_dir
+from .report import generate_report
 from .showcase import build_showcase, render_showcase_terminal
 from .scope import get_scope, scoped_assets, set_scope
 from .state import init_workspace
@@ -182,6 +183,15 @@ def cmd_showcase(args: argparse.Namespace) -> int:
     workspace = _workspace(args)
     showcase = build_showcase(workspace)
     print(render_showcase_terminal(showcase), end="")
+    return 0
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    output_dir = Path(args.output_dir) if args.output_dir else None
+    artifacts = generate_report(workspace, output_dir=output_dir)
+    for name, path in artifacts.items():
+        print(f"{name}={path}")
     return 0
 
 
@@ -375,6 +385,10 @@ def build_parser() -> argparse.ArgumentParser:
     loop_p.add_argument("--data-csv", default=None)
     loop_p.add_argument("--column", default=None)
     loop_p.set_defaults(func=cmd_loop)
+
+    report_p = subparsers.add_parser("report", help="Generate dashboard, monitor HTML, figures, and PDF benchmark report.")
+    report_p.add_argument("--output-dir", default=None, help="Output directory. Defaults to docs/demo_results.")
+    report_p.set_defaults(func=cmd_report)
 
     multi_p = subparsers.add_parser("multiagent", help="Role-based research-agent orchestration commands.")
     multi_sub = multi_p.add_subparsers(dest="multiagent_command", required=True)
