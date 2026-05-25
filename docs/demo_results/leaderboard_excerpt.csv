@@ -1,0 +1,4 @@
+run_id,hypothesis_id,backend,status,metric_name,metric_value,baseline,delta,wall_time_sec,next_action
+run_0008,full_demo_tsl_simple_dlinear,tsl-simple,completed,rmse,0.60498005,0.60498005,0.0,3.523361,continue
+run_0009,full_demo_tsl_simple_patchtst,tsl-simple,completed,rmse,0.59777755,0.60498005,0.0072025,4.51652,continue
+run_0010,full_demo_tsl_simple_mlp,tsl-simple,completed,rmse,0.77158123,0.60498005,-0.16660118,3.37491,kill

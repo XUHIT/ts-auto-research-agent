@@ -84,3 +84,15 @@ research_state/full_research_demo_report.md
 ```
 
 This is the recommended presentation artifact because it shows the agent as a complete research workflow, not just an experiment runner.
+
+## Published Demo Result
+
+A public-safe snapshot of the completed full research demo is committed under:
+
+```text
+docs/demo_results/full_research_demo_result.md
+docs/demo_results/leaderboard_excerpt.csv
+docs/demo_results/run_artifacts_tree.txt
+```
+
+The snapshot shows the final effect of the complete demo while keeping raw runtime state local.

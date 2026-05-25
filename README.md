@@ -127,3 +127,13 @@ ts-agent demo full-research \
 ```
 
 The generated local report is `research_state/full_research_demo_report.md`. It includes literature signals, the selected idea, pre-taste scores, real model metrics, post-result review, and the next automated step.
+
+## Demo Result Snapshot
+
+The completed full research demo result is included for public review:
+
+- `docs/demo_results/full_research_demo_result.md`: public-safe end-to-end demo report.
+- `docs/demo_results/leaderboard_excerpt.csv`: metrics from the real demo runs.
+- `docs/demo_results/run_artifacts_tree.txt`: generated runtime artifact layout.
+
+These files summarize the final demo effect without committing local runtime paths, private data, or raw run logs.
