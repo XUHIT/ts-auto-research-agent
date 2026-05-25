@@ -2,12 +2,12 @@
 
 `ts-auto-research-agent` is a clean-room time-series autonomous research agent. It combines:
 
-- Karpathy-style metric-driven experiment trajectory loops.
-- ARIS-style file protocols, review checkpoints, and recoverable artifacts.
+- Metric-driven experiment trajectory loops.
+- Recoverable file protocols, review checkpoints, and resumable artifacts.
 - A read-only time-series literature substrate built from curated top-venue paper notes.
 - Vibe and taste gates before and after experiments, so the agent does research instead of blind benchmark sweeping.
 
-This repo intentionally does **not** copy Karpathy or ARIS code. It reimplements their core workflow ideas for time-series research.
+The system is designed as a clean-room time-series research loop: ideas are proposed, scored, executed, reviewed, and carried forward only when results change the research trajectory.
 
 ## Quick Start
 
@@ -35,7 +35,7 @@ find runs -maxdepth 2 -type f | sort
 - `ts-agent literature build-index`: build a read-only paper-note index.
 - `ts-agent vibe propose`: generate fast research-direction ideas from topic + literature context.
 - `ts-agent taste review`: score a vibe idea before experiment planning.
-- `ts-agent plan-experiment`: create an ARIS-style experiment plan.
+- `ts-agent plan-experiment`: create a recoverable experiment plan.
 - `ts-agent run-next`: run the next queued experiment.
 - `ts-agent parse-last`: parse and register the latest run.
 - `ts-agent review-last`: produce a strict action decision for the latest run.

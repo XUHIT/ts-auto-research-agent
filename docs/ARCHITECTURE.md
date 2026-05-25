@@ -4,13 +4,13 @@
 
 ## Core Layers
 
-1. Karpathy-style inner loop
+1. Metric trajectory inner loop
    - Maintains metric-driven experiment trajectory.
    - Runs bounded experiment budgets.
    - Updates `research_state/leaderboard.csv` and `research_state/trajectory.jsonl` after every run.
    - Queues follow-up variants when a result is worth continuing.
 
-2. ARIS-style outer protocol
+2. Recoverable research protocol
    - Every run is recoverable from files under `runs/run_XXXX/`.
    - Required protocol files are generated every time: `vibe_idea.yaml`, `taste_pre.yaml`, `experiment_plan.yaml`, `command.sh`, `metrics.json`, `taste_post.yaml`, and `review.md`.
    - Reviewer decisions are constrained to `continue`, `kill`, `pivot`, or `needs_human_confirmation`.

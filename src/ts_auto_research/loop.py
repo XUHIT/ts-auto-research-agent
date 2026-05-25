@@ -1,4 +1,4 @@
-"""Karpathy-style metric loop plus ARIS-style file protocol."""
+"""Metric-driven research loop plus recoverable file protocol."""
 
 from __future__ import annotations
 

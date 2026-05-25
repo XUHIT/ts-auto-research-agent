@@ -9,8 +9,8 @@
 - Vibe idea proposal from topic plus literature context.
 - Pre-run taste gate with explicit scoring dimensions and blocking rules.
 - Experiment queue and plan generation.
-- Karpathy-style metric trajectory loop with follow-up plan queueing.
-- ARIS-style run directory protocol.
+- Metric trajectory loop with follow-up plan queueing.
+- Recoverable run directory protocol.
 - Strict reviewer decisions with only four allowed outputs.
 - `smoke` backend for complete loop verification.
 - `dlinear-mini` backend for minimal CSV time-series experiments, plus clear blocker when no CSV is provided.
