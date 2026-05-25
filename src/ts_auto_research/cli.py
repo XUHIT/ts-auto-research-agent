@@ -13,6 +13,7 @@ from .loop import parse_last, read_leaderboard, run_loop_budget, run_next
 from .paths import Workspace
 from .planner import plan_experiment
 from .registry import latest_run_dir
+from .scope import get_scope, scoped_assets, set_scope
 from .state import init_workspace
 from .taste import review_idea
 from .vibe import propose_vibes
@@ -57,6 +58,25 @@ def cmd_assets_list(args: argparse.Namespace) -> int:
     assets = filter_assets(workspace, kind=args.kind, adapter=args.adapter, limit=args.limit)
     for item in assets:
         print(f"{item['id']}	{item['kind']}	{item['adapter']}	{item['path']}")
+    return 0
+
+
+def cmd_scope_set(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    scope = set_scope(workspace, name=args.name, asset_ids=args.asset_id, note=args.note or "")
+    print(f"scope={scope['name']} assets={len(scope['asset_ids'])}")
+    print(workspace.scope_json)
+    return 0
+
+
+def cmd_scope_show(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    scope = get_scope(workspace)
+    print(f"scope={scope.get('name')} assets={len(scope.get('asset_ids', []))}")
+    if scope.get("note"):
+        print(scope["note"])
+    for item in scoped_assets(workspace):
+        print(f"{item['id']}	{item['kind']}	{item['path']}")
     return 0
 
 
@@ -183,6 +203,16 @@ def build_parser() -> argparse.ArgumentParser:
     assets_list.add_argument("--adapter", default=None)
     assets_list.add_argument("--limit", type=int, default=None)
     assets_list.set_defaults(func=cmd_assets_list)
+
+    scope_p = subparsers.add_parser("scope", help="Active experiment scope commands.")
+    scope_sub = scope_p.add_subparsers(dest="scope_command", required=True)
+    scope_set = scope_sub.add_parser("set", help="Set the active experiment asset scope.")
+    scope_set.add_argument("--name", required=True)
+    scope_set.add_argument("--asset-id", action="append", required=True, help="Asset id to keep active. Can be passed multiple times.")
+    scope_set.add_argument("--note", default="")
+    scope_set.set_defaults(func=cmd_scope_set)
+    scope_show = scope_sub.add_parser("show", help="Show active experiment asset scope.")
+    scope_show.set_defaults(func=cmd_scope_show)
 
     vibe_p = subparsers.add_parser("vibe", help="Vibe idea commands.")
     vibe_sub = vibe_p.add_subparsers(dest="vibe_command", required=True)

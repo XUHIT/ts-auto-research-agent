@@ -67,6 +67,15 @@ class Workspace:
         return self.research_state / "experiment_queue.json"
 
 
+
+    @property
+    def scope_yaml(self) -> Path:
+        return self.research_state / "experiment_scope.yaml"
+
+    @property
+    def scope_json(self) -> Path:
+        return self.research_state / "experiment_scope.json"
+
     @property
     def assets_yaml(self) -> Path:
         return self.research_state / "assets.yaml"

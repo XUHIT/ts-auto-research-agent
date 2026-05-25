@@ -17,6 +17,7 @@ cd /home/xu/ts-auto-research-agent
 ts-agent init
 ts-agent literature build-index --source /home/xu/autoresearch-agent/knowledge-base/paper-notes --limit 50
 ts-agent assets scan --scan-root /path/to/time-series-assets --max-depth 4
+ts-agent scope set --name general-ts-two-libs --asset-id <baseline_repo_id> --asset-id <baseline_repo_id>
 ts-agent vibe propose --topic forecasting --count 3
 ts-agent taste review --idea vibe_001
 ts-agent loop --budget 2 --backend smoke
@@ -35,6 +36,7 @@ find runs -maxdepth 2 -type f | sort
 - `ts-agent init`: create `research_state/`, `runs/`, and `literature/` runtime files.
 - `ts-agent literature build-index`: build a read-only paper-note index.
 - `ts-agent assets scan/list`: discover external papers, datasets, baselines, checkpoints, and environments into a local runtime registry.
+- `ts-agent scope set/show`: restrict the active experiment scope to approved assets before automation begins.
 - `ts-agent vibe propose`: generate fast research-direction ideas from topic + literature context.
 - `ts-agent taste review`: score a vibe idea before experiment planning.
 - `ts-agent plan-experiment`: create a recoverable experiment plan.

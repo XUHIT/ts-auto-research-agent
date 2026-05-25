@@ -61,3 +61,20 @@ ts-agent assets list --adapter dataset_registry
 The agent owns orchestration, taste, planning, metric normalization, trajectory, and review.
 
 External assets own raw data, baseline code, pretrained weights, and specialized benchmark scripts.
+
+## Active Scope
+
+Before running automated experiments, set an active scope. The current recommended first phase is to use only general-purpose time-series benchmark libraries and exclude domain-specific standalone projects.
+
+Example:
+
+```bash
+ts-agent scope set \
+  --name general-ts-two-libs \
+  --asset-id <tsfm-eval-baseline-repo-id> \
+  --asset-id <time-series-library-simple-baseline-repo-id>
+
+ts-agent scope show
+```
+
+This keeps the research loop focused on common model/data/benchmark surfaces instead of drifting into specialized project code.

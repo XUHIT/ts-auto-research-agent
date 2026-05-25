@@ -83,7 +83,7 @@ def _repo_asset(path: Path) -> dict[str, Any] | None:
     if ".git" not in dirs:
         return None
     has_runner = bool(files & {"run.py", "main.py", "run_eval.py"}) or any(name.startswith("run_") for name in files)
-    has_ts_shape = bool(dirs & {"models", "exp", "data_provider", "dataset", "datasets", "scripts"})
+    has_ts_shape = bool(dirs & {"models", "exp", "data_provider", "dataset", "datasets", "scripts", "data", "configs", "metrics"})
     kind = "baseline_repo" if has_runner and has_ts_shape else "code_repo"
     capabilities = ["baseline_execution", "metric_parsing"] if kind == "baseline_repo" else ["code_reference"]
     return _asset(kind, path, "external_backend", capabilities, "git repository with runnable time-series structure" if kind == "baseline_repo" else "git repository")

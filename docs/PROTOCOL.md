@@ -46,3 +46,7 @@ The final reviewer output is always one of:
 - `kill`
 - `pivot`
 - `needs_human_confirmation`
+
+## Scope Gate
+
+Every automated experiment should use assets from the active scope. If a proposed run needs an asset outside the scope, the reviewer should return `needs_human_confirmation` before any command is executed.

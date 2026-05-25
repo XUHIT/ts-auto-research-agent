@@ -13,6 +13,7 @@ from ts_auto_research.assets import filter_assets, scan_assets, write_asset_inve
 from ts_auto_research.literature import build_index, read_index
 from ts_auto_research.loop import run_loop_budget, run_next
 from ts_auto_research.paths import Workspace
+from ts_auto_research.scope import scoped_assets, set_scope
 from ts_auto_research.state import init_workspace
 from ts_auto_research.taste import review_idea
 from ts_auto_research.vibe import propose_vibes
@@ -126,6 +127,26 @@ class CoreLoopTests(unittest.TestCase):
             self.assertIn("data_benchmark", kinds)
             self.assertIn("model_checkpoint", kinds)
             self.assertGreaterEqual(len(filter_assets(workspace, kind="baseline_repo")), 1)
+
+    def test_scope_limits_active_assets(self) -> None:
+        with TemporaryDirectory() as tmp:
+            workspace = self.workspace(tmp)
+            init_workspace(workspace)
+            root = Path(tmp) / "external"
+            repo_a = root / "Time-Series-Library_simple"
+            repo_b = root / "TSFM_EVAL"
+            for repo in [repo_a, repo_b]:
+                (repo / ".git").mkdir(parents=True)
+                (repo / "models").mkdir()
+                (repo / "run.py").write_text("print('run')\n", encoding="utf-8")
+            assets = scan_assets([root], max_depth=3, limit=20)
+            write_asset_inventory(workspace, [root], assets)
+            ids = [item["id"] for item in assets if item["kind"] == "baseline_repo"]
+            self.assertEqual(len(ids), 2)
+            set_scope(workspace, "general-ts", ids[:1], note="test scope")
+            active = scoped_assets(workspace)
+            self.assertEqual(len(active), 1)
+            self.assertEqual(active[0]["id"], ids[0])
 
 
 if __name__ == "__main__":
