@@ -5,11 +5,13 @@ import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from ts_auto_research.assets import filter_assets, scan_assets, write_asset_inventory
+from ts_auto_research.cli import build_parser
 from ts_auto_research.literature import build_index, read_index
 from ts_auto_research.demo import run_public_mini_demo
 from ts_auto_research.loop import run_loop_budget, run_next
@@ -204,6 +206,25 @@ class CoreLoopTests(unittest.TestCase):
             self.assertEqual(len(runner["data"]["run_ids"]), 1)
             run_id = runner["data"]["run_ids"][0]
             self.assertTrue(workspace.run_dir(run_id).joinpath("review.md").exists())
+
+
+    def test_full_research_cli_uses_server_defaults(self) -> None:
+        with TemporaryDirectory() as tmp:
+            parser = build_parser()
+            args = parser.parse_args(["--root", tmp, "demo", "full-research"])
+            fake_result = {
+                "report_path": str(Path(tmp) / "report.md"),
+                "idea": {"id": "vibe_001"},
+                "taste_pre": {"status": "approved"},
+                "literature": {"count": 1},
+                "results": [],
+            }
+            with patch("ts_auto_research.cli.run_full_research_demo", return_value=fake_result) as mocked:
+                self.assertEqual(args.func(args), 0)
+            kwargs = mocked.call_args.kwargs
+            self.assertEqual(kwargs["paper_source"], Path("/home/xu/autoresearch-agent/knowledge-base/paper-notes"))
+            self.assertEqual(kwargs["topic"], "forecasting")
+            self.assertEqual(kwargs["models"], [])
 
 
 if __name__ == "__main__":

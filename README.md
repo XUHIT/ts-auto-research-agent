@@ -10,23 +10,24 @@
 
 The system is designed as a clean-room time-series research loop: ideas are proposed, scored, executed, reviewed, and carried forward only when results change the research trajectory.
 
-## Quick Start
+## Target Server Quick Start
+
+The primary delivery target is the A20CPolar server, not an arbitrary clean machine. The validated closed-loop demo uses the server GPU, the server paper-note knowledge base, and the local Time-Series-Library_simple benchmark repository.
 
 ```bash
 cd /home/xu/ts-auto-research-agent
 /home/xu/anaconda3/bin/python -m pip install -e .
-ts-agent init
+ts-agent demo full-research
+```
+
+The default server demo reads paper notes from `/home/xu/autoresearch-agent/knowledge-base/paper-notes`, runs Time-Series-Library_simple from `/home/xu/pytorch_projects/my_time_series_lab/Time-Series-Library_simple`, and writes `research_state/full_research_demo_report.md`.
+
+Useful supporting commands:
+
+```bash
 ts-agent demo public-mini
-ts-agent literature build-index --source /home/xu/autoresearch-agent/knowledge-base/paper-notes --limit 50
-ts-agent assets scan --scan-root /path/to/time-series-assets --max-depth 4
-ts-agent scope set --name general-ts-two-libs --asset-id <baseline_repo_id> --asset-id <baseline_repo_id>
-ts-agent vibe propose --topic forecasting --count 3
-ts-agent taste review --idea vibe_001
-ts-agent loop --budget 2 --backend smoke
-ts-agent demo tsl-simple --model DLinear --model PatchTST --model MLP
 ts-agent multiagent run --topic forecasting --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes
-ts-agent demo full-research --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes --model DLinear --model PatchTST --model MLP
-ts-agent run-next --backend dlinear-mini --data-csv examples/sample_series.csv --column value
+ts-agent leaderboard
 ```
 
 Inspect outputs:
@@ -101,19 +102,24 @@ research_state/multiagent_trace.md
 - `docs/PROTOCOL.md`: experiment protocol, taste gates, and reviewer outputs.
 - `docs/ASSET_INTEGRATION.md`: how server-side papers, data, baselines, checkpoints, and environments enter the agent without being copied into the repo.
 - `docs/MULTI_AGENT_ORCHESTRATION.md`: role-based agent orchestration, trace files, and extension path.
-- `docs/PUBLIC_DEMO.md`: one-command portable demo for first-time users.
+- `docs/SERVER_ENVIRONMENT.md`: target GPU, conda, CUDA, paths, and active scope.
+- `docs/SERVER_CLOSED_LOOP_DEMO.md`: validated server-backed closed-loop demo and latest metrics.
+- `docs/PUBLIC_DEMO.md`: optional portable smoke demo for first-time users.
 - `IMPLEMENTATION_REPORT.md`: delivered scope, validation commands, and remaining product work.
 
-## Public Mini Demo
+## Server Closed-Loop Demo
 
-For a fresh clone without private server paths, run:
+The main demonstration is:
 
 ```bash
-python -m pip install -e .
-ts-agent demo public-mini
+ts-agent demo full-research
 ```
 
-This generates `research_state/public_mini_demo_report.md`, `research_state/multiagent_trace.md`, a leaderboard row, and a recoverable `runs/run_XXXX/` protocol directory using only `examples/demo_paper_notes/` and `examples/sample_series.csv`.
+Latest validated server result: DLinear and PatchTST completed on ETTh1 with PatchTST improving RMSE against the DLinear anchor, while MLP was killed by the reviewer. See `docs/SERVER_CLOSED_LOOP_DEMO.md` for the full metric table.
+
+## Optional Portable Smoke Demo
+
+`ts-agent demo public-mini` remains available as a lightweight smoke test, but it is no longer the main delivery criterion.
 
 ## Presentation Demo
 

@@ -1,17 +1,16 @@
 # Presentation Demo
 
-## Public Mini Demo
+## Server-Backed Demo
 
-The portable demo is the recommended first run for outside users:
+The recommended presentation path is the server-backed closed loop:
 
 ```bash
-python -m pip install -e .
-ts-agent demo public-mini
+cd /home/xu/ts-auto-research-agent
+/home/xu/anaconda3/bin/python -m pip install -e .
+ts-agent demo full-research
 ```
 
-It uses only bundled paper notes and `examples/sample_series.csv`, then writes `research_state/public_mini_demo_report.md` and `research_state/multiagent_trace.md`.
-
-This demo proves the full loop with real Time-Series-Library_simple executions rather than synthetic metrics.
+It uses the RTX 3090 server, the local paper-note knowledge base, and Time-Series-Library_simple. The optional `public-mini` demo remains a lightweight smoke test, not the main delivery criterion.
 
 ## Command
 
