@@ -6,21 +6,14 @@ from typing import Any
 
 from .io_utils import read_json, write_json, write_yaml
 from .literature import read_index
+from .methods import select_literature_evidence
 from .paths import Workspace
 
 
 def _signals_for_topic(workspace: Workspace, topic: str, limit: int = 5) -> list[str]:
-    topic_low = topic.lower()
-    signals: list[str] = []
-    for record in read_index(workspace, limit=200):
-        hay = " ".join(str(record.get(key, "")) for key in ["title", "contribution", "keywords", "limitations"]).lower()
-        if topic_low in hay or "forecast" in hay or "time series" in hay:
-            title = record.get("title", "untitled")
-            limitation = record.get("limitations") or record.get("contribution") or "No compact signal extracted."
-            signals.append(f"{title}: {str(limitation)[:180]}")
-        if len(signals) >= limit:
-            break
-    return signals
+    records = read_index(workspace, limit=1000)
+    evidence = select_literature_evidence(records, limit=limit)
+    return [f"{item['title']} ({item['venue']}): {item['lesson']}" for item in evidence]
 
 
 def propose_vibes(workspace: Workspace, topic: str, count: int = 3) -> list[dict[str, Any]]:
@@ -29,10 +22,10 @@ def propose_vibes(workspace: Workspace, topic: str, count: int = 3) -> list[dict
     signals = _signals_for_topic(workspace, topic)
     templates = [
         (
-            "Long-context forecasting should be treated as predictive compression, not raw lookback expansion.",
-            "More history can help, but raw supervised models often consume irrelevant context as noise.",
-            "Revisiting / lightweight method",
-            "Could collapse into pooling unless the predictive-state claim is tested.",
+            "A publishable forecasting agent should test one literature-backed residual against a locked DLinear anchor before scaling the search.",
+            "DLinear is strong because simple structure matters; a candidate must add a precise mechanism, such as known-horizon calendar context, without hiding inside a large backbone.",
+            "Benchmark-first / lightweight method",
+            "Could be only a DLinear improvement and not a SOTA claim if PatchTST remains stronger.",
         ),
         (
             "Online forecasting should decide when not to adapt before inventing another adapter.",

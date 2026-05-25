@@ -1,114 +1,65 @@
-# Full Research Demo Result
+# Server Benchmark Demo Result
 
-This is a public-safe snapshot of the completed end-to-end demo. The raw runtime files stay under `research_state/` and `runs/` on the experiment machine because they contain local paths and source-specific notes.
+This is the public-safe snapshot of the latest server-backed benchmark study. The raw runtime files stay under `research_state/` and `runs/` on the experiment machine.
 
-## Demo Command
+## Command
 
 ```bash
 ts-agent demo full-research \
-  --paper-source /path/to/paper-notes \
-  --literature-limit 50 \
+  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
+  --literature-limit 1000 \
   --topic forecasting \
   --model DLinear \
   --model PatchTST \
-  --model MLP \
+  --model CalDLinear \
   --data ETTh1.csv \
   --seq-len 24 \
   --pred-len 24 \
   --subset-ratio 0.05 \
-  --train-epochs 1
+  --train-epochs 3
 ```
 
 ## End-to-End Flow
 
 ```mermaid
 flowchart LR
-  A[Paper notes] --> B[Literature index]
+  A[Top-venue paper notes] --> B[Literature evidence]
   B --> C[Vibe idea]
   C --> D[Pre-taste gate]
-  D --> E[Experiment plans]
+  D --> E[Method-role experiment plans]
   E --> F[Time-Series-Library_simple runs]
   F --> G[Metric parser]
   G --> H[Post-taste review]
   H --> I[Leaderboard and trajectory]
-  I --> J[Demo report]
+  I --> J[Benchmark showcase]
 ```
 
-## Literature Stage
+## Literature Signals Used
 
-- Indexed paper notes: `50`
-- Topic: `forecasting`
-- Representative signals, paraphrased for the public snapshot:
-  - Multivariate time-series analysis often needs interpretable diagnostics, not only scalar metrics.
-  - Dynamic temporal relations and distribution shift are recurring concerns in forecasting papers.
-  - Existing methods often improve benchmarks while leaving open questions about robustness, data regimes, and mechanism.
-  - This motivates experiments that test whether model improvements reflect useful predictive compression rather than blind context expansion.
+- APT: timestamp/prototype affine structure motivates known-horizon context.
+- RevIN: reversible normalization helps distribution shift but has assumptions.
+- PatchTST: patch-based strong references prevent overclaiming.
+- LinearAnalysis: simple linear constraints and residual structure can matter more than heavy backbones.
+- SIN: selective normalization motivates adaptive lightweight adapters.
 
-## Vibe Idea
+## Benchmark Setup
 
-- Idea id: `vibe_005`
-- One-liner: Long-context forecasting should be treated as predictive compression, not raw lookback expansion.
-- Core tension: More history can help, but raw supervised models often consume irrelevant context as noise.
-- Risk: The idea can collapse into a pooling trick unless the predictive-state claim is tested.
-
-## Pre-Taste Gate
-
-| Dimension | Score |
-|---|---:|
-| interestingness | 4 |
-| non_obviousness | 4 |
-| importance | 4 |
-| story_potential | 4 |
-| experimentability | 4 |
-| defensibility | 3 |
-| trend_alignment | 4 |
-| personal_fit | 4 |
-
-- Total: `31`
-- Status: `approved`
-- Reason: passes taste gate
-
-## Real Experiment Setup
-
-- Backend: `tsl-simple`
-- External benchmark: `Time-Series-Library_simple`
 - Dataset: `ETTh1.csv`
 - Sequence length: `24`
 - Prediction length: `24`
 - Training subset ratio: `0.05`
-- Training epochs: `1`
-- Compared models: `DLinear`, `PatchTST`, `MLP`
+- Training epochs: `3`
+- Primary metric: `RMSE`
+- Secondary metric: `MAE`
 
 ## Results
 
-| Run | Model | RMSE | MAE | Baseline RMSE | Delta vs DLinear | Reviewer decision |
-|---|---:|---:|---:|---:|---:|---|
-| `run_0008` | DLinear | 0.60498005 | 0.38604552 | 0.60498005 | 0.00000000 | `continue` |
-| `run_0009` | PatchTST | 0.59777755 | 0.38496944 | 0.60498005 | +0.00720250 | `continue` |
-| `run_0010` | MLP | 0.77158123 | 0.56779635 | 0.60498005 | -0.16660118 | `kill` |
+| Run | Role | Model | RMSE | MAE | Baseline | Delta | Decision |
+|---|---|---|---:|---:|---:|---:|---|
+| `run_0048` | `baseline_anchor` | `DLinear` | `0.59827763` | `0.38131171` | `0.59827763` | `0.0` | `continue` |
+| `run_0049` | `strong_reference` | `PatchTST` | `0.58627319` | `0.37807289` | `0.59827763` | `0.01200444` | `continue` |
+| `run_0050` | `innovation_candidate` | `CalDLinear` | `0.59605795` | `0.38774657` | `0.59827763` | `0.00221968` | `continue` |
 
-## Demo Takeaway
+## Takeaway
 
-PatchTST produced the best RMSE in this tiny controlled run. The result is not a final scientific claim; it is a validated trajectory showing that the agent can move from literature-grounded ideation to real benchmark execution, metric parsing, taste review, and trajectory update.
-
-## Generated Runtime Artifacts
-
-Each real run generated the same recoverable protocol files:
-
-```text
-vibe_idea.yaml
-taste_pre.yaml
-experiment_plan.yaml
-command.sh
-stdout.log
-stderr.log
-metrics.json
-taste_post.yaml
-review.md
-```
-
-The local full report was generated at:
-
-```text
-research_state/full_research_demo_report.md
-```
+CalDLinear improves RMSE over DLinear by `0.00221968`, so it is worth continuing as a bounded lightweight candidate. PatchTST remains stronger, so this is not a SOTA claim. The next agent step is ablation and broader validation.

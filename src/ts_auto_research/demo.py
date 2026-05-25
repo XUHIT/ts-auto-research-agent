@@ -7,6 +7,7 @@ from typing import Any
 
 from .io_utils import ensure_dir, read_json, write_json, write_yaml
 from .literature import build_index, read_index
+from .methods import default_full_research_models, display_role_for_model, method_card_for_model, role_for_model, select_literature_evidence
 from .multiagent import run_research_crew
 from .paths import Workspace
 from .registry import register_run
@@ -41,19 +42,45 @@ def _shell_command_from_metrics(metrics: dict[str, Any]) -> str:
     return "ts-agent demo tsl-simple"
 
 
-def _demo_plan(idea: dict[str, Any], model: str, index: int, config: dict[str, Any]) -> dict[str, Any]:
+def _demo_plan(
+    idea: dict[str, Any],
+    model: str,
+    index: int,
+    config: dict[str, Any],
+    literature_records: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    method_card = method_card_for_model(model, literature_records or [])
+    role = method_card["role"]
+    if role == "baseline_anchor":
+        hypothesis = f"Reproduce {model} as the locked DLinear baseline anchor for the benchmark study."
+        success = "The run completes and defines the baseline metric for every later candidate."
+        kill = "A blocked or unstable baseline invalidates the benchmark protocol."
+    elif role == "strong_reference":
+        hypothesis = f"Run {model} as a strong reference so a candidate cannot be oversold against DLinear only."
+        success = "The reference completes under the same data, budget, and metric protocol."
+        kill = "A blocked reference is recorded, but it is not treated as project innovation."
+    elif role == "innovation_candidate":
+        hypothesis = method_card["claim"]
+        success = method_card["acceptance"]
+        kill = "Kill or pivot if it cannot beat the DLinear baseline or if secondary diagnostics undermine the story."
+    else:
+        hypothesis = f"Measure whether {model} changes the benchmark trajectory under the locked protocol."
+        success = "Lower RMSE than the DLinear anchor under the same data and budget."
+        kill = "Higher RMSE than the DLinear anchor with no useful diagnostic surprise."
     return {
         "id": f"demo_tsl_simple_{index:02d}_{model.lower()}",
         "idea_id": idea["id"],
         "hypothesis_id": f"demo_tsl_simple_{model.lower()}",
         "backend": "tsl-simple",
         "status": "queued",
-        "hypothesis": f"Measure whether {model} changes the short-horizon ETTh1 research trajectory under a tiny controlled run.",
+        "hypothesis": hypothesis,
         "metric_name": "rmse",
         "optimize": "minimize",
-        "success_criteria": "Lower RMSE than the DLinear anchor under the same data and budget.",
-        "kill_criteria": "Higher RMSE than the DLinear anchor with no useful diagnostic surprise.",
-        "changed_config_summary": f"Run {model} on Time-Series-Library_simple with a small ETTh1 controlled configuration.",
+        "method_role": role,
+        "method_card": method_card,
+        "success_criteria": success,
+        "kill_criteria": kill,
+        "changed_config_summary": f"Run {model} as {display_role_for_model(model)} on Time-Series-Library_simple under the locked ETTh1 benchmark protocol.",
         "config": config,
     }
 
@@ -69,7 +96,7 @@ def run_tsl_simple_demo(
 ) -> dict[str, Any]:
     init_workspace(workspace)
     if not models:
-        models = ["DLinear", "PatchTST", "MLP"]
+        models = default_full_research_models()
 
     ideas = propose_vibes(workspace, topic="forecasting-demo", count=1)
     idea = ideas[0]
@@ -103,7 +130,7 @@ def run_tsl_simple_demo(
             config["baseline_rmse"] = baseline_rmse
             config["baseline_model"] = baseline_model
 
-        plan = _demo_plan(idea, model, index, config)
+        plan = _demo_plan(idea, model, index, config, literature_records=[])
         run_id = next_run_id(workspace)
         run_dir = ensure_dir(workspace.run_dir(run_id))
         run = {
@@ -125,6 +152,8 @@ def run_tsl_simple_demo(
         write_json(run_dir / "run.json", run)
 
         metrics, output = run_backend("tsl-simple", run_id, plan)
+        metrics.setdefault("diagnostics", {})["method_role"] = plan.get("method_role", role_for_model(model))
+        metrics["diagnostics"]["method_claim"] = plan.get("method_card", {}).get("claim")
         if baseline_rmse is None and metrics.get("status") == "completed" and metrics.get("metric_value") is not None:
             baseline_rmse = float(metrics["metric_value"])
             baseline_model = model
@@ -158,9 +187,9 @@ def run_tsl_simple_demo(
 
 def _demo_report(results: list[dict[str, Any]], data: str, seq_len: int, pred_len: int, subset_ratio: float) -> str:
     lines = [
-        "# TSL Simple Demo Report",
+        "# TSL Simple Benchmark Report",
         "",
-        "## Demo Setup",
+        "## Benchmark Setup",
         f"- Dataset: `{data}`",
         f"- Sequence length: `{seq_len}`",
         f"- Prediction length: `{pred_len}`",
@@ -169,8 +198,8 @@ def _demo_report(results: list[dict[str, Any]], data: str, seq_len: int, pred_le
         "",
         "## Results",
         "",
-        "| Run | Model | RMSE | MAE | Baseline | Delta | Decision |",
-        "|---|---:|---:|---:|---:|---:|---|",
+        "| Run | Role | Model | RMSE | MAE | Baseline | Delta | Decision |",
+        "|---|---|---|---:|---:|---:|---:|---|",
     ]
     best: dict[str, Any] | None = None
     for result in results:
@@ -179,6 +208,7 @@ def _demo_report(results: list[dict[str, Any]], data: str, seq_len: int, pred_le
         row = {
             "run_id": result["run"]["run_id"],
             "model": diag.get("model", "unknown"),
+            "role": diag.get("method_role", role_for_model(str(diag.get("model", "unknown")))),
             "rmse": metrics.get("metric_value"),
             "mae": diag.get("mae"),
             "baseline": metrics.get("baseline"),
@@ -188,17 +218,17 @@ def _demo_report(results: list[dict[str, Any]], data: str, seq_len: int, pred_le
         if row["rmse"] is not None and (best is None or float(row["rmse"]) < float(best["rmse"])):
             best = row
         lines.append(
-            f"| `{row['run_id']}` | {row['model']} | {row['rmse']} | {row['mae']} | {row['baseline']} | {row['delta']} | `{row['decision']}` |"
+            f"| `{row['run_id']}` | `{row['role']}` | {row['model']} | {row['rmse']} | {row['mae']} | {row['baseline']} | {row['delta']} | `{row['decision']}` |"
         )
     lines.extend(["", "## Takeaway"])
     if best:
-        lines.append(f"Best model in this tiny controlled demo: `{best['model']}` with RMSE `{best['rmse']}`.")
+        lines.append(f"Best model in this locked benchmark study: `{best['model']}` with RMSE `{best['rmse']}`.")
     else:
         lines.append("No completed model run was available for comparison.")
     lines.extend(
         [
             "",
-            "This report is generated from real Time-Series-Library_simple executions and the same run protocol used by the autonomous research loop.",
+            "This report is generated from real Time-Series-Library_simple executions under the same locked benchmark protocol used by the autonomous research loop.",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -214,16 +244,16 @@ def run_full_research_demo(
     seq_len: int = 24,
     pred_len: int = 24,
     subset_ratio: float = 0.05,
-    train_epochs: int = 1,
-    literature_limit: int = 50,
+    train_epochs: int = 3,
+    literature_limit: int = 1000,
 ) -> dict[str, Any]:
     """Run the full demo: literature, idea, taste, real experiments, review, report."""
     init_workspace(workspace)
     if not models:
-        models = ["DLinear", "PatchTST", "MLP"]
+        models = default_full_research_models()
 
     literature_result = build_index(workspace, paper_source, limit=literature_limit)
-    literature_records = read_index(workspace, limit=8)
+    literature_records = read_index(workspace, limit=1000)
     ideas = propose_vibes(workspace, topic=topic, count=3)
     idea = ideas[0]
     taste_pre = get_pre_taste(workspace, idea["id"]) or review_idea(workspace, idea["id"])
@@ -256,18 +286,10 @@ def run_full_research_demo(
             config["baseline_rmse"] = baseline_rmse
             config["baseline_model"] = baseline_model
 
-        plan = _demo_plan(idea, model, index, config)
+        plan = _demo_plan(idea, model, index, config, literature_records=literature_records)
         plan["id"] = f"full_demo_tsl_simple_{index:02d}_{model.lower()}"
         plan["hypothesis_id"] = f"full_demo_tsl_simple_{model.lower()}"
-        plan["literature_context"] = [
-            {
-                "title": record.get("title"),
-                "venue": record.get("venue"),
-                "contribution": str(record.get("contribution", ""))[:280],
-                "limitations": str(record.get("limitations", ""))[:220],
-            }
-            for record in literature_records[:5]
-        ]
+        plan["literature_context"] = select_literature_evidence(literature_records)
         plan["changed_config_summary"] = (
             f"Use literature-grounded idea `{idea['id']}` to evaluate {model} on "
             f"Time-Series-Library_simple under a controlled ETTh1 setting."
@@ -294,6 +316,8 @@ def run_full_research_demo(
         write_json(run_dir / "run.json", run)
 
         metrics, output = run_backend("tsl-simple", run_id, plan)
+        metrics.setdefault("diagnostics", {})["method_role"] = plan.get("method_role", role_for_model(model))
+        metrics["diagnostics"]["method_claim"] = plan.get("method_card", {}).get("claim")
         if baseline_rmse is None and metrics.get("status") == "completed" and metrics.get("metric_value") is not None:
             baseline_rmse = float(metrics["metric_value"])
             baseline_model = model
@@ -355,10 +379,10 @@ def _full_research_report(
 ) -> str:
     scope = get_scope(workspace)
     lines = [
-        "# Full Research Agent Demo Report",
+        "# Server Benchmark Research Demo Report",
         "",
         "## Demo Goal",
-        "Show the complete autonomous research loop: literature context, idea proposal, taste gate, real benchmark execution, metric parsing, post-result review, and trajectory update.",
+        "Show one rigorous benchmark study: DLinear is the locked baseline, PatchTST is the strong reference, and only literature-grounded candidates can be treated as project innovation.",
         "",
         "## Literature Substrate",
         f"- Source: `{literature_result.get('source')}`",
@@ -366,11 +390,11 @@ def _full_research_report(
         "",
         "### Representative Literature Signals",
     ]
-    for record in literature_records[:5]:
-        title = record.get("title", "untitled")
-        venue = record.get("venue", "unknown")
-        contribution = str(record.get("contribution", ""))[:220] or "No compact contribution extracted."
-        lines.append(f"- **{title}** ({venue}): {contribution}")
+    for evidence in select_literature_evidence(literature_records):
+        title = evidence.get("title", "untitled")
+        venue = evidence.get("venue", "unknown")
+        lesson = evidence.get("lesson", "No compact lesson extracted.")
+        lines.append(f"- **{title}** ({venue}): {lesson}")
 
     lines.extend(
         [
@@ -397,11 +421,13 @@ def _full_research_report(
             f"- Sequence length: `{seq_len}`",
             f"- Prediction length: `{pred_len}`",
             f"- Training subset ratio: `{subset_ratio}`",
+            f"- Training epochs: `{results[0]['plan']['config'].get('train_epochs') if results else 'n/a'}`",
+            "- Baseline rule: `DLinear` is the metric anchor; strong references and innovation candidates are labeled separately.",
             "",
             "## Real Experiment Results",
             "",
-            "| Run | Model | RMSE | MAE | Baseline | Delta | Decision |",
-            "|---|---:|---:|---:|---:|---:|---|",
+            "| Run | Role | Model | RMSE | MAE | Baseline | Delta | Decision |",
+            "|---|---|---|---:|---:|---:|---:|---|",
         ]
     )
     best: dict[str, Any] | None = None
@@ -411,6 +437,7 @@ def _full_research_report(
         row = {
             "run_id": result["run"]["run_id"],
             "model": diag.get("model", "unknown"),
+            "role": diag.get("method_role", role_for_model(str(diag.get("model", "unknown")))),
             "rmse": metrics.get("metric_value"),
             "mae": diag.get("mae"),
             "baseline": metrics.get("baseline"),
@@ -419,17 +446,50 @@ def _full_research_report(
         }
         if row["rmse"] is not None and (best is None or float(row["rmse"]) < float(best["rmse"])):
             best = row
-        lines.append(f"| `{row['run_id']}` | {row['model']} | {row['rmse']} | {row['mae']} | {row['baseline']} | {row['delta']} | `{row['decision']}` |")
+        lines.append(f"| `{row['run_id']}` | `{row['role']}` | {row['model']} | {row['rmse']} | {row['mae']} | {row['baseline']} | {row['delta']} | `{row['decision']}` |")
 
     lines.extend(["", "## Research Interpretation"])
     if best:
-        lines.append(f"The current tiny controlled benchmark favors `{best['model']}` with RMSE `{best['rmse']}`.")
+        lines.append(f"The best RMSE in this locked benchmark study is `{best['model']}` with RMSE `{best['rmse']}`.")
+    baseline = next((item for item in results if item["metrics"].get("diagnostics", {}).get("method_role") == "baseline_anchor"), None)
+    strong_refs = [item for item in results if item["metrics"].get("diagnostics", {}).get("method_role") == "strong_reference"]
+    candidates = [item for item in results if item["metrics"].get("diagnostics", {}).get("method_role") == "innovation_candidate"]
+    baseline_value = baseline["metrics"].get("metric_value") if baseline else None
+    best_strong = min(
+        (item for item in strong_refs if item["metrics"].get("metric_value") is not None),
+        key=lambda item: float(item["metrics"]["metric_value"]),
+        default=None,
+    )
+    best_candidate = min(
+        (item for item in candidates if item["metrics"].get("metric_value") is not None),
+        key=lambda item: float(item["metrics"]["metric_value"]),
+        default=None,
+    )
+    if baseline_value is not None and best_candidate is not None:
+        candidate_metrics = best_candidate["metrics"]
+        candidate_model = candidate_metrics.get("diagnostics", {}).get("model", "candidate")
+        candidate_delta = candidate_metrics.get("delta")
+        if candidate_delta is not None and float(candidate_delta) > 0:
+            lines.append(
+                f"`{candidate_model}` is a bounded positive innovation candidate against DLinear: RMSE improves by `{candidate_delta}` under the same protocol."
+            )
+        else:
+            lines.append(f"`{candidate_model}` does not clear the DLinear baseline and should be killed or redesigned.")
+    if best_strong is not None and best_candidate is not None:
+        strong_metric = float(best_strong["metrics"]["metric_value"])
+        candidate_metric = float(best_candidate["metrics"]["metric_value"])
+        strong_model = best_strong["metrics"].get("diagnostics", {}).get("model", "strong reference")
+        candidate_model = best_candidate["metrics"].get("diagnostics", {}).get("model", "candidate")
+        if strong_metric < candidate_metric:
+            lines.append(
+                f"`{strong_model}` remains the stronger reference, so `{candidate_model}` is not a SOTA claim; it is a lightweight baseline-improvement signal."
+            )
     lines.extend(
         [
-            "The result is not a final scientific claim; it is a validated demo trajectory that proves the agent can move from literature-grounded ideation to real experiment execution and structured review.",
+            "The result is a bounded benchmark claim, not a final paper claim: an innovation candidate must beat DLinear first, then be checked against the strong reference before any larger claim is allowed.",
             "",
             "## Next Automated Step",
-            "Convert this fixed demo into a bounded `tsl-simple` loop that chooses the next model or dataset from the active scope based on the leaderboard and post-taste review.",
+            "Deepen the accepted candidate with ablations, secondary metrics, and more datasets before turning it into a paper-level claim.",
         ]
     )
     return "\n".join(lines) + "\n"

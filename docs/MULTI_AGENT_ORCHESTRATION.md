@@ -23,10 +23,10 @@ Stage the complete orchestration without launching the real benchmark:
 ts-agent multiagent run \
   --topic forecasting \
   --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
-  --literature-limit 50 \
+  --literature-limit 1000 \
   --model DLinear \
   --model PatchTST \
-  --model MLP
+  --model CalDLinear
 ```
 
 Stage and execute the portable backend path:
@@ -56,7 +56,7 @@ ts-agent multiagent run \
   --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
   --model DLinear \
   --model PatchTST \
-  --model MLP \
+  --model CalDLinear \
   --execute-demo
 ```
 
@@ -83,7 +83,7 @@ The Markdown trace is a public-readable recovery summary for demos and reviews.
 ## Execution Modes
 
 - `dry-run`: builds literature context, proposes ideas, runs the taste gate, checks scope, prepares the experiment plan, and records the runner as ready.
-- `execute-demo`: runs the same orchestration, then launches the real `full-research` demo through the runner role.
+- `execute-demo`: runs the same orchestration, then launches the real `full-research` benchmark study through the runner role.
 
 The default is `dry-run` because multi-agent planning should be inspectable before spending benchmark time.
 

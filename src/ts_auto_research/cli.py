@@ -262,8 +262,9 @@ def cmd_demo_tsl_simple(args: argparse.Namespace) -> int:
         metrics = item["metrics"]
         review = item["review"]
         model = metrics.get("diagnostics", {}).get("model")
+        role = metrics.get("diagnostics", {}).get("method_role")
         mae = metrics.get("diagnostics", {}).get("mae")
-        print(f"{run['run_id']} model={model} rmse={metrics.get('metric_value')} mae={mae} decision={review.get('decision')}")
+        print(f"{run['run_id']} role={role} model={model} rmse={metrics.get('metric_value')} mae={mae} decision={review.get('decision')}")
     return 0
 
 
@@ -289,8 +290,9 @@ def cmd_demo_full_research(args: argparse.Namespace) -> int:
         metrics = item["metrics"]
         review = item["review"]
         model = metrics.get("diagnostics", {}).get("model")
+        role = metrics.get("diagnostics", {}).get("method_role")
         mae = metrics.get("diagnostics", {}).get("mae")
-        print(f"{run['run_id']} model={model} rmse={metrics.get('metric_value')} mae={mae} decision={review.get('decision')}")
+        print(f"{run['run_id']} role={role} model={model} rmse={metrics.get('metric_value')} mae={mae} decision={review.get('decision')}")
     showcase = build_showcase(workspace)
     print(render_showcase_terminal(showcase), end="")
     return 0
@@ -379,17 +381,17 @@ def build_parser() -> argparse.ArgumentParser:
     multi_run = multi_sub.add_parser("run", help="Run the multi-agent orchestration protocol and write a trace.")
     multi_run.add_argument("--topic", default="forecasting")
     multi_run.add_argument("--paper-source", default=None, help="Optional paper-note source directory. Uses existing index when omitted.")
-    multi_run.add_argument("--literature-limit", type=int, default=50)
+    multi_run.add_argument("--literature-limit", type=int, default=1000)
     multi_run.add_argument("--backend", default="tsl-simple", choices=["smoke", "dlinear-mini", "tsl-simple"])
     multi_run.add_argument("--budget", type=int, default=1)
-    multi_run.add_argument("--model", action="append", default=[], help="Model to include in the staged plan. Defaults to DLinear, PatchTST, MLP.")
+    multi_run.add_argument("--model", action="append", default=[], help="Model to include in the staged plan. Defaults to DLinear, PatchTST, CalDLinear.")
     multi_run.add_argument("--data-csv", default=None)
     multi_run.add_argument("--column", default=None)
     multi_run.add_argument("--data", default="ETTh1.csv")
     multi_run.add_argument("--seq-len", type=int, default=24)
     multi_run.add_argument("--pred-len", type=int, default=24)
     multi_run.add_argument("--subset-ratio", type=float, default=0.05)
-    multi_run.add_argument("--train-epochs", type=int, default=1)
+    multi_run.add_argument("--train-epochs", type=int, default=3)
     multi_run.add_argument("--execute-demo", action="store_true", help="Run the real full-research demo instead of only staging it.")
     multi_run.set_defaults(func=cmd_multiagent_run)
     multi_show = multi_sub.add_parser("show", help="Print the latest multi-agent trace summary.")
@@ -397,7 +399,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     demo_p = subparsers.add_parser("demo", help="Presentation-grade demo commands.")
     demo_sub = demo_p.add_subparsers(dest="demo_command", required=True)
-    demo_public = demo_sub.add_parser("public-mini", help="Run a clone-local complete research-agent demo.")
+    demo_public = demo_sub.add_parser("public-mini", help="Run a clone-local smoke check with bundled assets.")
     demo_public.add_argument("--topic", default="forecasting")
     demo_public.add_argument("--paper-source", default=None, help="Defaults to examples/demo_paper_notes.")
     demo_public.add_argument("--data-csv", default=None, help="Defaults to examples/sample_series.csv.")
@@ -405,8 +407,8 @@ def build_parser() -> argparse.ArgumentParser:
     demo_public.add_argument("--budget", type=int, default=1)
     demo_public.set_defaults(func=cmd_demo_public_mini)
 
-    demo_tsl = demo_sub.add_parser("tsl-simple", help="Run a small real Time-Series-Library_simple comparison demo.")
-    demo_tsl.add_argument("--model", action="append", default=[], help="Model to run. Pass multiple times. Defaults to DLinear, PatchTST, MLP.")
+    demo_tsl = demo_sub.add_parser("tsl-simple", help="Run a real Time-Series-Library_simple benchmark suite.")
+    demo_tsl.add_argument("--model", action="append", default=[], help="Model to run. Pass multiple times. Defaults to DLinear, PatchTST, CalDLinear.")
     demo_tsl.add_argument("--data", default="ETTh1.csv")
     demo_tsl.add_argument("--seq-len", type=int, default=24)
     demo_tsl.add_argument("--pred-len", type=int, default=24)
@@ -414,16 +416,16 @@ def build_parser() -> argparse.ArgumentParser:
     demo_tsl.add_argument("--train-epochs", type=int, default=1)
     demo_tsl.set_defaults(func=cmd_demo_tsl_simple)
 
-    demo_full = demo_sub.add_parser("full-research", help="Run the complete literature-to-experiment research demo.")
+    demo_full = demo_sub.add_parser("full-research", help="Run the server benchmark study with literature-grounded candidate evaluation.")
     demo_full.add_argument("--paper-source", default="/home/xu/autoresearch-agent/knowledge-base/paper-notes")
-    demo_full.add_argument("--literature-limit", type=int, default=50)
+    demo_full.add_argument("--literature-limit", type=int, default=1000)
     demo_full.add_argument("--topic", default="forecasting")
-    demo_full.add_argument("--model", action="append", default=[], help="Model to run. Pass multiple times. Defaults to DLinear, PatchTST, MLP.")
+    demo_full.add_argument("--model", action="append", default=[], help="Model to run. Pass multiple times. Defaults to DLinear, PatchTST, CalDLinear.")
     demo_full.add_argument("--data", default="ETTh1.csv")
     demo_full.add_argument("--seq-len", type=int, default=24)
     demo_full.add_argument("--pred-len", type=int, default=24)
     demo_full.add_argument("--subset-ratio", type=float, default=0.05)
-    demo_full.add_argument("--train-epochs", type=int, default=1)
+    demo_full.add_argument("--train-epochs", type=int, default=3)
     demo_full.set_defaults(func=cmd_demo_full_research)
 
     board_p = subparsers.add_parser("leaderboard", help="Print leaderboard.csv.")

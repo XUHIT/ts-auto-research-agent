@@ -8,53 +8,59 @@
 - Vibe idea proposal and pre/post taste review.
 - Role-based multi-agent orchestration with trace artifacts.
 - `smoke`, `dlinear-mini`, and `tsl-simple` backend paths.
-- Target server closed-loop demo: `ts-agent demo full-research`.
-- Optional portable smoke demo: `ts-agent demo public-mini`.
+- Server benchmark demo: `ts-agent demo full-research`.
+- Optional portable smoke check: `ts-agent demo public-mini`.
+- Method-role cards for baseline anchor, strong reference, and innovation candidate.
 - Unit tests and GitHub Actions workflow.
 
-## Optional Portable Smoke Demo
+## Main Benchmark Demo
 
-A fresh clone can still run a lightweight smoke test:
+The delivery demo is a single ETTh1 benchmark study on the target server:
+
+```bash
+cd /home/xu/ts-auto-research-agent
+ts-agent demo full-research
+ts-agent showcase
+```
+
+Validated result:
+
+| Role | Model | RMSE | MAE | Delta vs DLinear | Decision |
+|---|---|---:|---:|---:|---|
+| baseline anchor | DLinear | 0.59827763 | 0.38131171 | 0.00000000 | continue |
+| strong reference | PatchTST | 0.58627319 | 0.37807289 | +0.01200444 | continue |
+| innovation candidate | CalDLinear | 0.59605795 | 0.38774657 | +0.00221968 | continue |
+
+Interpretation: CalDLinear is a bounded positive innovation candidate against DLinear on RMSE, but PatchTST remains the stronger reference. The next step is ablation and broader validation.
+
+## Optional Smoke Check
+
+A fresh clone can still run a lightweight smoke check:
 
 ```bash
 python -m pip install -e .
 ts-agent demo public-mini
 ```
 
-Expected outputs:
-
-```text
-research_state/public_mini_demo_report.md
-research_state/multiagent_trace.md
-research_state/leaderboard.csv
-runs/run_XXXX/review.md
-```
+This checks loop mechanics only. It is not the delivery benchmark demo.
 
 ## Validation Commands
 
 ```bash
 python -m compileall src tests
 python -m unittest discover -s tests -v
-ts-agent demo public-mini
 ts-agent demo full-research
+ts-agent showcase
 ```
 
 ## Remaining Product Work
 
+- Add ablations for CalDLinear to isolate the calendar residual effect.
+- Run the accepted candidate on more datasets and horizons.
 - Add optional LLM-backed implementations behind the existing role interfaces.
 - Add configurable adapters for more external benchmark repositories.
-- Expand literature retrieval beyond compact markdown notes.
-- Add richer public demo visualization once a frontend is introduced.
+- Add richer result visualization once a frontend is introduced.
 
 ## Server Validation
 
 Validated on the A20CPolar server with NVIDIA GeForce RTX 3090 24GB, driver 570.211.01, system CUDA 12.8, and the `time_series_library` conda environment.
-
-Latest server demo command:
-
-```bash
-cd /home/xu/ts-auto-research-agent
-ts-agent demo full-research
-```
-
-Latest validated result: DLinear and PatchTST completed on ETTh1, PatchTST improved RMSE over the DLinear anchor, and MLP was killed by the reviewer.

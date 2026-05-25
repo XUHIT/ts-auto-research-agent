@@ -14,6 +14,7 @@ from typing import Any
 
 from .io_utils import read_json, write_json
 from .literature import build_index, read_index
+from .methods import default_full_research_models
 from .paths import Workspace
 from .scope import get_scope, scoped_assets
 from .state import init_workspace, utc_now
@@ -219,7 +220,7 @@ def run_research_crew(
     workspace: Workspace,
     topic: str = "forecasting",
     paper_source: Path | None = None,
-    literature_limit: int = 50,
+    literature_limit: int = 1000,
     models: list[str] | None = None,
     data: str = "ETTh1.csv",
     data_csv: str | None = None,
@@ -227,7 +228,7 @@ def run_research_crew(
     seq_len: int = 24,
     pred_len: int = 24,
     subset_ratio: float = 0.05,
-    train_epochs: int = 1,
+    train_epochs: int = 3,
     backend: str = "tsl-simple",
     budget: int = 1,
     execute_demo: bool = False,
@@ -239,7 +240,7 @@ def run_research_crew(
     selected backend and register run artifacts.
     """
     init_workspace(workspace)
-    models = models or ["DLinear", "PatchTST", "MLP"]
+    models = models or default_full_research_models()
     task_results: list[AgentTaskResult] = []
     created_at = utc_now()
     run_id = "crew_" + created_at.replace(":", "").replace("-", "").split(".")[0]
@@ -251,7 +252,7 @@ def run_research_crew(
         records_before = read_index(workspace, limit=None)
         literature_result = {"source": "existing_index", "count": len(records_before), "output": str(workspace.paper_index)}
         literature_summary = f"Using existing paper index with {len(records_before)} records."
-    literature_records = read_index(workspace, limit=8)
+    literature_records = read_index(workspace, limit=1000)
     task_results.append(
         _result(
             "literature_curator",

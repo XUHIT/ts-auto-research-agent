@@ -231,5 +231,46 @@ class CoreLoopTests(unittest.TestCase):
             self.assertEqual(kwargs["models"], [])
 
 
+    def test_showcase_separates_candidate_from_strong_reference(self) -> None:
+        with TemporaryDirectory() as tmp:
+            workspace = self.workspace(tmp)
+            init_workspace(workspace)
+            leaderboard_text = (
+                "run_id,hypothesis_id,backend,status,metric_name,metric_value,baseline,delta,wall_time_sec,next_action\n"
+                "run_0001,h_dlinear,tsl-simple,completed,rmse,0.59827763,0.59827763,0.0,1.0,continue\n"
+                "run_0002,h_patchtst,tsl-simple,completed,rmse,0.58627319,0.59827763,0.01200444,1.0,continue\n"
+                "run_0003,h_caldlinear,tsl-simple,completed,rmse,0.59605795,0.59827763,0.00221968,1.0,continue\n"
+            )
+            workspace.leaderboard_csv.write_text(leaderboard_text, encoding="utf-8")
+            metrics_by_run = {
+                "run_0001": {"model": "DLinear", "role": "baseline_anchor", "value": 0.59827763, "delta": 0.0},
+                "run_0002": {"model": "PatchTST", "role": "strong_reference", "value": 0.58627319, "delta": 0.01200444},
+                "run_0003": {"model": "CalDLinear", "role": "innovation_candidate", "value": 0.59605795, "delta": 0.00221968},
+            }
+            for run_id, item in metrics_by_run.items():
+                run_dir = workspace.run_dir(run_id)
+                run_dir.mkdir(parents=True)
+                (run_dir / "metrics.json").write_text(
+                    json.dumps(
+                        {
+                            "status": "completed",
+                            "backend": "tsl-simple",
+                            "metric_name": "rmse",
+                            "metric_value": item["value"],
+                            "baseline": 0.59827763,
+                            "delta": item["delta"],
+                            "diagnostics": {"model": item["model"], "method_role": item["role"]},
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+            showcase = build_showcase(workspace)
+            self.assertIn("CalDLinear improves", showcase["effect"])
+            self.assertIn("PatchTST remains", showcase["effect"])
+            self.assertEqual(showcase["best_candidate"]["model"], "CalDLinear")
+            roles = [item["role"] for item in showcase["results"]]
+            self.assertEqual(roles, ["baseline_anchor", "strong_reference", "innovation_candidate"])
+
+
 if __name__ == "__main__":
     unittest.main()

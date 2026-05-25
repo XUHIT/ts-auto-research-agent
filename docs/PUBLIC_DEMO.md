@@ -1,6 +1,6 @@
-# Public Mini Demo
+# Public Smoke Check
 
-The public mini demo is the portable first-run experience. It does not require private server paths, external benchmark repositories, GPUs, API keys, or additional datasets.
+`ts-agent demo public-mini` is a portable smoke check. It proves that a fresh clone can execute the research-loop mechanics with bundled paper notes and a bundled CSV, but it is not the project delivery demo.
 
 ## One Command
 
@@ -12,26 +12,12 @@ ts-agent demo public-mini
 ## What Runs
 
 1. Builds a paper-note index from `examples/demo_paper_notes/`.
-2. Proposes a research idea from the topic and literature context.
+2. Proposes a research idea from the bundled context.
 3. Runs the pre-experiment taste gate.
 4. Runs the multi-agent orchestration protocol.
 5. Executes the `dlinear-mini` backend on `examples/sample_series.csv`.
-6. Writes protocol files under `runs/run_XXXX/`.
-7. Updates `research_state/leaderboard.csv` and `research_state/trajectory.jsonl`.
-8. Writes `research_state/multiagent_trace.md`.
-9. Writes `research_state/public_mini_demo_report.md`.
+6. Writes protocol files, leaderboard, trajectory, and a local report.
 
-## Expected Artifacts
+## Why This Exists
 
-```text
-research_state/public_mini_demo_report.md
-research_state/multiagent_trace.md
-research_state/leaderboard.csv
-research_state/trajectory.jsonl
-runs/run_XXXX/metrics.json
-runs/run_XXXX/review.md
-```
-
-## Why This Demo Exists
-
-The larger `tsl-simple` demo proves integration with a real external time-series benchmark repository. The public mini demo proves that a fresh clone can run the full research-agent loop immediately.
+The smoke check is for installation and workflow sanity. The real demo is the server-backed ETTh1 benchmark study documented in `docs/SERVER_CLOSED_LOOP_DEMO.md`.

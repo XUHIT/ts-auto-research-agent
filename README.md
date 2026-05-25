@@ -1,35 +1,44 @@
 # TS Auto Research Agent
 
-`ts-auto-research-agent` is a clean-room time-series autonomous research agent. It combines:
-
-- Metric-driven experiment trajectory loops.
-- Recoverable file protocols, review checkpoints, and resumable artifacts.
-- A read-only time-series literature substrate built from curated top-venue paper notes.
-- Role-based multi-agent orchestration for literature, idea, taste, planning, execution, review, and synthesis roles.
-- Vibe and taste gates before and after experiments, so the agent does research instead of blind benchmark sweeping.
-
-The system is designed as a clean-room time-series research loop: ideas are proposed, scored, executed, reviewed, and carried forward only when results change the research trajectory.
+`ts-auto-research-agent` is a clean-room time-series autonomous research agent for a server-backed research loop. It does not treat a demo as a collection of small examples. The main demo is a single locked benchmark study with a baseline, a strong reference, a literature-grounded innovation candidate, real metrics, review decisions, and recoverable run artifacts.
 
 ## At A Glance
 
+Latest validated server benchmark on ETTh1, `seq_len=24`, `pred_len=24`, `subset_ratio=0.05`, `train_epochs=3`:
+
 ```text
-50 paper notes -> taste-gated idea -> 3 real Time-Series-Library_simple runs
-PatchTST: RMSE 0.59777755, delta +0.0072025 -> continue
-MLP: RMSE 0.77158123, delta -0.16660118 -> kill
-Next: continue from PatchTST and deepen the benchmark question
+1000 paper notes -> locked ETTh1 benchmark -> DLinear baseline -> literature-grounded candidate
+DLinear   role=baseline_anchor       RMSE 0.59827763  MAE 0.38131171
+PatchTST  role=strong_reference      RMSE 0.58627319  MAE 0.37807289
+CalDLinear role=innovation_candidate RMSE 0.59605795  MAE 0.38774657
+Result: CalDLinear improves RMSE over DLinear by 0.00221968, but PatchTST remains stronger.
+Conclusion: bounded positive candidate, not a SOTA claim yet.
 ```
 
-Run the one-screen interaction after any demo:
+Run the one-screen benchmark interaction:
 
 ```bash
+cd /home/xu/ts-auto-research-agent
+ts-agent demo full-research
 ts-agent showcase
 ```
 
-The showcase makes the effect, novelty, and usefulness visible immediately: literature context feeds ideas, taste gates prevent blind sweeping, real metrics decide what survives, and every decision is recoverable.
+## What Counts As The Demo
+
+The project demo is the server-backed benchmark study above. It must include:
+
+- A locked benchmark dataset and protocol: ETTh1, fixed horizon, fixed budget, fixed metric.
+- DLinear as the baseline anchor.
+- A strong reference arm, currently PatchTST, so the system cannot overclaim against DLinear only.
+- A literature-grounded innovation candidate, currently CalDLinear.
+- Pre-run taste review, experiment protocol files, metrics, post-run review, leaderboard, and trajectory.
+- A bounded interpretation that states what the candidate proves and what it does not prove.
+
+`ts-agent demo public-mini` is only a smoke check for the loop mechanics. It is not the project delivery demo.
 
 ## Target Server Quick Start
 
-The primary delivery target is the A20CPolar server, not an arbitrary clean machine. The validated closed-loop demo uses the server GPU, the server paper-note knowledge base, and the local Time-Series-Library_simple benchmark repository.
+The primary delivery target is the A20CPolar server, not an arbitrary clean machine. The validated benchmark uses the server GPU, the server paper-note knowledge base, and the local Time-Series-Library_simple benchmark repository.
 
 ```bash
 cd /home/xu/ts-auto-research-agent
@@ -38,57 +47,43 @@ ts-agent demo full-research
 ts-agent showcase
 ```
 
-The default server demo reads paper notes from `/home/xu/autoresearch-agent/knowledge-base/paper-notes`, runs Time-Series-Library_simple from `/home/xu/pytorch_projects/my_time_series_lab/Time-Series-Library_simple`, and writes `research_state/full_research_demo_report.md`.
+Default server inputs:
 
-Useful supporting commands:
-
-```bash
-ts-agent demo public-mini
-ts-agent multiagent run --topic forecasting --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes
-ts-agent leaderboard
-```
-
-Inspect outputs:
-
-```bash
-ts-agent leaderboard
-find runs -maxdepth 2 -type f | sort
-```
+- Paper notes: `/home/xu/autoresearch-agent/knowledge-base/paper-notes`
+- Benchmark repo: `/home/xu/pytorch_projects/my_time_series_lab/Time-Series-Library_simple`
+- Dataset: `ETTh1.csv`
+- Models: `DLinear`, `PatchTST`, `CalDLinear`
+- Epochs: `3`
+- Literature index limit: `1000`
 
 ## Core Commands
 
 - `ts-agent init`: create `research_state/`, `runs/`, and `literature/` runtime files.
 - `ts-agent literature build-index`: build a read-only paper-note index.
-- `ts-agent assets scan/list`: discover external papers, datasets, baselines, checkpoints, and environments into a local runtime registry.
-- `ts-agent scope set/show`: restrict the active experiment scope to approved assets before automation begins.
-- `ts-agent vibe propose`: generate fast research-direction ideas from topic + literature context.
-- `ts-agent taste review`: score a vibe idea before experiment planning.
-- `ts-agent plan-experiment`: create a recoverable experiment plan.
-- `ts-agent run-next`: run the next queued experiment.
-- `ts-agent parse-last`: parse and register the latest run.
-- `ts-agent review-last`: produce a strict action decision for the latest run.
-- `ts-agent loop`: run the autonomous inner loop for a fixed budget.
-- `ts-agent leaderboard`: print the experiment leaderboard.
-- `ts-agent showcase`: print a one-screen effect, novelty, usefulness, and result summary.
+- `ts-agent vibe propose`: generate research-direction ideas from topic and literature context.
+- `ts-agent taste review`: score an idea before experiment planning.
+- `ts-agent demo full-research`: run the server benchmark study.
+- `ts-agent showcase`: print a one-screen benchmark effect, novelty, usefulness, and next action.
 - `ts-agent multiagent run/show`: run and inspect the role-based orchestration trace.
-- `ts-agent demo public-mini`: run the complete clone-local demo with bundled notes and CSV data.
-- `ts-agent demo tsl-simple`: run a small real Time-Series-Library_simple comparison demo.
-- `ts-agent demo full-research`: run the full literature-to-experiment research agent demo.
+- `ts-agent leaderboard`: print the experiment leaderboard.
+- `ts-agent demo public-mini`: run a bundled smoke check only.
 
 ## Runtime Protocol
 
-Each run directory contains:
+Each benchmark run writes:
 
 ```text
-runs/run_0001/
+runs/run_XXXX/
   vibe_idea.yaml
   taste_pre.yaml
   experiment_plan.yaml
   command.sh
   stdout.log
+  stderr.log
   metrics.json
   taste_post.yaml
   review.md
+  review.json
 ```
 
 Global trajectory files:
@@ -98,92 +93,41 @@ research_state/leaderboard.csv
 research_state/trajectory.jsonl
 research_state/vibe_ideas.yaml
 research_state/taste_reviews.yaml
-research_state/experiment_queue.yaml
-research_state/claims.yaml
 research_state/multiagent_trace.json
-research_state/multiagent_trace.md
 research_state/showcase.md
 ```
 
-## Backends
+## Current Method Card
 
-- `smoke`: deterministic synthetic backend for validating the full loop.
-- `dlinear-mini`: minimal CSV-based time-series backend. If no CSV is provided, it records a clear environment/data blocker instead of silently pretending success. Try it with `examples/sample_series.csv`.
+The candidate implementation is included for review at `integrations/time_series_library_simple/models/CalDLinear.py`. The target server Time-Series-Library_simple working tree has the same model registered for the validated benchmark.
 
-## Tests
+`CalDLinear` keeps DLinear as the raw forecasting anchor and adds a small future-calendar residual. The candidate is motivated by the paper-note library signals around timestamp/prototype affine structure, reversible and selective normalization, linear-model analysis, and PatchTST as a strong reference.
+
+Acceptance rule:
+
+- It may continue only if it beats DLinear under the locked protocol.
+- It is not a SOTA claim unless it also beats the strong reference.
+- Current status: positive against DLinear on RMSE, weaker than PatchTST, needs ablations and more datasets.
+
+## Validation
 
 ```bash
-/home/xu/anaconda3/bin/python -m unittest discover -s tests
+/home/xu/anaconda3/bin/python -m compileall src tests
+/home/xu/anaconda3/bin/python -m unittest discover -s tests -v
+ts-agent demo full-research
+ts-agent showcase
 ```
 
 ## Design Docs
 
 - `docs/ARCHITECTURE.md`: system layers, state layout, and backend contract.
 - `docs/PROTOCOL.md`: experiment protocol, taste gates, and reviewer outputs.
-- `docs/ASSET_INTEGRATION.md`: how server-side papers, data, baselines, checkpoints, and environments enter the agent without being copied into the repo.
-- `docs/MULTI_AGENT_ORCHESTRATION.md`: role-based agent orchestration, trace files, and extension path.
+- `docs/ASSET_INTEGRATION.md`: how server-side papers, data, baselines, checkpoints, and environments enter the agent.
+- `docs/MULTI_AGENT_ORCHESTRATION.md`: role-based agent orchestration and trace files.
 - `docs/SERVER_ENVIRONMENT.md`: target GPU, conda, CUDA, paths, and active scope.
-- `docs/SERVER_CLOSED_LOOP_DEMO.md`: validated server-backed closed-loop demo and latest metrics.
-- `docs/SHOWCASE.md`: how the first-screen interaction communicates effect, novelty, and usefulness.
-- `docs/PUBLIC_DEMO.md`: optional portable smoke demo for first-time users.
-- `IMPLEMENTATION_REPORT.md`: delivered scope, validation commands, and remaining product work.
-
-## Server Closed-Loop Demo
-
-The main demonstration is:
-
-```bash
-ts-agent demo full-research
-```
-
-Latest validated server result: DLinear and PatchTST completed on ETTh1 with PatchTST improving RMSE against the DLinear anchor, while MLP was killed by the reviewer. See `docs/SERVER_CLOSED_LOOP_DEMO.md` for the full metric table.
-
-## Optional Portable Smoke Demo
-
-`ts-agent demo public-mini` remains available as a lightweight smoke test, but it is no longer the main delivery criterion.
-
-## Presentation Demo
-
-Run a real Time-Series-Library_simple mini-suite:
-
-```bash
-cd /home/xu/ts-auto-research-agent
-ts-agent demo tsl-simple --model DLinear --model PatchTST --model MLP --data ETTh1.csv --seq-len 24 --pred-len 24 --subset-ratio 0.05 --train-epochs 1
-```
-
-The demo writes standard run artifacts under `runs/run_XXXX/` and a local report at `research_state/tsl_simple_demo_report.md`. Runtime artifacts are intentionally ignored by git.
-
-## Full Research Demo
-
-Run the complete demo from paper notes to real benchmark results:
-
-```bash
-cd /home/xu/ts-auto-research-agent
-ts-agent demo full-research \
-  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
-  --literature-limit 50 \
-  --topic forecasting \
-  --model DLinear \
-  --model PatchTST \
-  --model MLP \
-  --data ETTh1.csv \
-  --seq-len 24 \
-  --pred-len 24 \
-  --subset-ratio 0.05 \
-  --train-epochs 1
-```
-
-The generated local report is `research_state/full_research_demo_report.md`. It includes literature signals, the selected idea, pre-taste scores, real model metrics, post-result review, and the next automated step.
-
-## Demo Result Snapshot
-
-The completed full research demo result is included for public review:
-
-- `docs/demo_results/full_research_demo_result.md`: public-safe end-to-end demo report.
-- `docs/demo_results/leaderboard_excerpt.csv`: metrics from the real demo runs.
-- `docs/demo_results/run_artifacts_tree.txt`: generated runtime artifact layout.
-
-These files summarize the final demo effect without committing local runtime paths, private data, or raw run logs.
+- `docs/SERVER_CLOSED_LOOP_DEMO.md`: validated server benchmark and latest metrics.
+- `docs/SHOWCASE.md`: first-screen benchmark showcase.
+- `docs/PUBLIC_DEMO.md`: optional smoke check.
 
 ## License
 

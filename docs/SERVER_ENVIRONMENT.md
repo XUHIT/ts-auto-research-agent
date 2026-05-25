@@ -75,6 +75,22 @@ baseline_repo_tsfm_eval_2b0f29fb
 baseline_repo_time_series_library_simple_d8b93a49
 ```
 
+
+## Current Benchmark Method Set
+
+The validated benchmark uses `DLinear` as the baseline anchor, `PatchTST` as the strong reference, and `CalDLinear` as the current literature-grounded innovation candidate inside the local Time-Series-Library_simple working tree.
+
+Default benchmark protocol:
+
+```text
+Dataset: ETTh1.csv
+seq_len: 24
+pred_len: 24
+subset_ratio: 0.05
+train_epochs: 3
+metric: RMSE, with MAE tracked as a secondary diagnostic
+```
+
 ## Main Validation Command
 
 ```bash
