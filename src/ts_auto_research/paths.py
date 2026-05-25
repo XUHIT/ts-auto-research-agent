@@ -66,6 +66,15 @@ class Workspace:
     def queue_json(self) -> Path:
         return self.research_state / "experiment_queue.json"
 
+
+    @property
+    def assets_yaml(self) -> Path:
+        return self.research_state / "assets.yaml"
+
+    @property
+    def assets_json(self) -> Path:
+        return self.research_state / "assets.json"
+
     @property
     def leaderboard_csv(self) -> Path:
         return self.research_state / "leaderboard.csv"

@@ -25,6 +25,10 @@
    - Post-run taste evaluates whether the result changes belief, contains surprise, or supports a claim.
    - This prevents the loop from becoming blind hyperparameter search.
 
+5. External asset substrate
+   - Server-side papers, datasets, baseline repositories, checkpoints, scripts, and environments are discovered into a local runtime registry.
+   - The core agent stores asset IDs and adapters, not copied data or external code.
+
 ## Runtime State
 
 ```text

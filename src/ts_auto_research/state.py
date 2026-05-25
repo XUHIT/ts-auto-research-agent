@@ -40,6 +40,7 @@ def init_workspace(workspace: Workspace, force: bool = False) -> dict[str, Any]:
         (workspace.taste_json, []),
         (workspace.queue_json, []),
         (workspace.claims_json, []),
+        (workspace.assets_json, {"schema_version": 1, "roots": [], "count": 0, "kind_counts": {}, "assets": []}),
     ]:
         if force or not path.exists():
             write_json(path, payload)
@@ -48,6 +49,7 @@ def init_workspace(workspace: Workspace, force: bool = False) -> dict[str, Any]:
         (workspace.taste_yaml, []),
         (workspace.queue_yaml, []),
         (workspace.claims_yaml, []),
+        (workspace.assets_yaml, {"schema_version": 1, "roots": [], "count": 0, "kind_counts": {}, "assets": []}),
     ]:
         if force or not path.exists():
             write_yaml(path, payload)

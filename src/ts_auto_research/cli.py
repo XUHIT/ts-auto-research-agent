@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 import sys
 
+from .assets import filter_assets, scan_assets, write_asset_inventory
 from .io_utils import read_json
 from .literature import build_index
 from .loop import parse_last, read_leaderboard, run_loop_budget, run_next
@@ -35,6 +36,27 @@ def cmd_literature_build_index(args: argparse.Namespace) -> int:
     result = build_index(workspace, Path(args.source), limit=args.limit)
     print(f"indexed {result['count']} papers")
     print(result["output"])
+    return 0
+
+
+def cmd_assets_scan(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    init_workspace(workspace)
+    roots = [Path(root) for root in args.scan_root]
+    assets = scan_assets(roots, max_depth=args.max_depth, limit=args.limit)
+    inventory = write_asset_inventory(workspace, roots, assets)
+    print(f"discovered {inventory['count']} assets")
+    for kind, count in sorted(inventory["kind_counts"].items()):
+        print(f"{kind}: {count}")
+    print(workspace.assets_json)
+    return 0
+
+
+def cmd_assets_list(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    assets = filter_assets(workspace, kind=args.kind, adapter=args.adapter, limit=args.limit)
+    for item in assets:
+        print(f"{item['id']}	{item['kind']}	{item['adapter']}	{item['path']}")
     return 0
 
 
@@ -148,6 +170,19 @@ def build_parser() -> argparse.ArgumentParser:
     lit_build.add_argument("--source", required=True, help="Paper-note source directory.")
     lit_build.add_argument("--limit", type=int, default=None, help="Optional maximum number of notes to index.")
     lit_build.set_defaults(func=cmd_literature_build_index)
+
+    assets_p = subparsers.add_parser("assets", help="Server asset discovery and registry commands.")
+    assets_sub = assets_p.add_subparsers(dest="assets_command", required=True)
+    assets_scan = assets_sub.add_parser("scan", help="Scan external papers, data, baselines, environments, and checkpoints into research_state/assets.json.")
+    assets_scan.add_argument("--scan-root", action="append", required=True, help="Root path to scan. Can be passed multiple times.")
+    assets_scan.add_argument("--max-depth", type=int, default=4)
+    assets_scan.add_argument("--limit", type=int, default=1000)
+    assets_scan.set_defaults(func=cmd_assets_scan)
+    assets_list = assets_sub.add_parser("list", help="List discovered assets from research_state/assets.json.")
+    assets_list.add_argument("--kind", default=None)
+    assets_list.add_argument("--adapter", default=None)
+    assets_list.add_argument("--limit", type=int, default=None)
+    assets_list.set_defaults(func=cmd_assets_list)
 
     vibe_p = subparsers.add_parser("vibe", help="Vibe idea commands.")
     vibe_sub = vibe_p.add_subparsers(dest="vibe_command", required=True)

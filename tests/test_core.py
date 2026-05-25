@@ -9,6 +9,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from ts_auto_research.assets import filter_assets, scan_assets, write_asset_inventory
 from ts_auto_research.literature import build_index, read_index
 from ts_auto_research.loop import run_loop_budget, run_next
 from ts_auto_research.paths import Workspace
@@ -102,6 +103,29 @@ class CoreLoopTests(unittest.TestCase):
             self.assertEqual(result["metrics"]["status"], "completed")
             self.assertIsInstance(result["metrics"]["metric_value"], float)
             self.assertTrue(workspace.run_dir("run_0001").joinpath("metrics.json").exists())
+
+    def test_asset_scan_registers_external_resources(self) -> None:
+        with TemporaryDirectory() as tmp:
+            workspace = self.workspace(tmp)
+            init_workspace(workspace)
+            root = Path(tmp) / "external"
+            repo = root / "baseline_repo"
+            (repo / ".git").mkdir(parents=True)
+            (repo / "models").mkdir()
+            (repo / "run.py").write_text("print('run')\n", encoding="utf-8")
+            data_dir = root / "benchmark_datasets" / "ETT"
+            data_dir.mkdir(parents=True)
+            (data_dir / "ETTh1.csv").write_text("x\n1\n", encoding="utf-8")
+            ckpt_dir = root / "checkpoints" / "model_a"
+            ckpt_dir.mkdir(parents=True)
+            (ckpt_dir / "checkpoint.pth").write_bytes(b"checkpoint")
+            assets = scan_assets([root], max_depth=4, limit=100)
+            write_asset_inventory(workspace, [root], assets)
+            kinds = {item["kind"] for item in assets}
+            self.assertIn("baseline_repo", kinds)
+            self.assertIn("data_benchmark", kinds)
+            self.assertIn("model_checkpoint", kinds)
+            self.assertGreaterEqual(len(filter_assets(workspace, kind="baseline_repo")), 1)
 
 
 if __name__ == "__main__":

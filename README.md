@@ -16,6 +16,7 @@ cd /home/xu/ts-auto-research-agent
 /home/xu/anaconda3/bin/python -m pip install -e .
 ts-agent init
 ts-agent literature build-index --source /home/xu/autoresearch-agent/knowledge-base/paper-notes --limit 50
+ts-agent assets scan --scan-root /path/to/time-series-assets --max-depth 4
 ts-agent vibe propose --topic forecasting --count 3
 ts-agent taste review --idea vibe_001
 ts-agent loop --budget 2 --backend smoke
@@ -33,6 +34,7 @@ find runs -maxdepth 2 -type f | sort
 
 - `ts-agent init`: create `research_state/`, `runs/`, and `literature/` runtime files.
 - `ts-agent literature build-index`: build a read-only paper-note index.
+- `ts-agent assets scan/list`: discover external papers, datasets, baselines, checkpoints, and environments into a local runtime registry.
 - `ts-agent vibe propose`: generate fast research-direction ideas from topic + literature context.
 - `ts-agent taste review`: score a vibe idea before experiment planning.
 - `ts-agent plan-experiment`: create a recoverable experiment plan.
@@ -84,4 +86,5 @@ research_state/claims.yaml
 
 - `docs/ARCHITECTURE.md`: system layers, state layout, and backend contract.
 - `docs/PROTOCOL.md`: experiment protocol, taste gates, and reviewer outputs.
+- `docs/ASSET_INTEGRATION.md`: how server-side papers, data, baselines, checkpoints, and environments enter the agent without being copied into the repo.
 - `IMPLEMENTATION_REPORT.md`: implemented scope, validation results, and current GitHub publication blocker.
