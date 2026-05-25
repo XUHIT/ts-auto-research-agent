@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ts-auto-research-agent"
+version = "0.1.0"
+description = "A time-series autonomous research agent with vibe/taste gates and metric-driven experiment loops."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "XUHIT" }]
+dependencies = []
+
+[project.scripts]
+ts-agent = "ts_auto_research.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["ts_auto_research"]
+
+[tool.setuptools.package-data]
+ts_auto_research = ["py.typed"]

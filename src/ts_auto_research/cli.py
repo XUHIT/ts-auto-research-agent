@@ -1,0 +1,210 @@
+"""Command line interface for ts-auto-research-agent."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import sys
+
+from .io_utils import read_json
+from .literature import build_index
+from .loop import parse_last, read_leaderboard, run_loop_budget, run_next
+from .paths import Workspace
+from .planner import plan_experiment
+from .registry import latest_run_dir
+from .state import init_workspace
+from .taste import review_idea
+from .vibe import propose_vibes
+
+
+def _workspace(args: argparse.Namespace) -> Workspace:
+    return Workspace.from_root(getattr(args, "root", "."))
+
+
+def cmd_init(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    state = init_workspace(workspace, force=args.force)
+    print(f"initialized {workspace.root}")
+    print(f"state={state['status']} next_run_number={state['next_run_number']}")
+    return 0
+
+
+def cmd_literature_build_index(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    init_workspace(workspace)
+    result = build_index(workspace, Path(args.source), limit=args.limit)
+    print(f"indexed {result['count']} papers")
+    print(result["output"])
+    return 0
+
+
+def cmd_vibe_propose(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    init_workspace(workspace)
+    ideas = propose_vibes(workspace, topic=args.topic, count=args.count)
+    for idea in ideas:
+        print(f"{idea['id']}: {idea['one_liner']}")
+    return 0
+
+
+def cmd_taste_review(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    init_workspace(workspace)
+    review = review_idea(workspace, args.idea)
+    print(f"{review['id']}: {review['status']} ({review['reason']}) total={review['total']}")
+    return 0
+
+
+def cmd_plan_experiment(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    init_workspace(workspace)
+    plan = plan_experiment(workspace, args.idea, backend=args.backend)
+    print(f"{plan['id']}: {plan['status']} backend={plan['backend']}")
+    return 0
+
+
+def cmd_run_next(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    result = run_next(
+        workspace,
+        backend=args.backend,
+        topic=args.topic,
+        data_csv=args.data_csv,
+        column=args.column,
+    )
+    run = result["run"]
+    metrics = result["metrics"]
+    review = result["review"]
+    print(f"{run['run_id']} status={metrics.get('status')} decision={review.get('decision')}")
+    print(f"metric={metrics.get('metric_name')} value={metrics.get('metric_value')} delta={metrics.get('delta')}")
+    print(run["run_dir"])
+    return 0
+
+
+def cmd_parse_last(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    parsed = parse_last(workspace)
+    if parsed is None:
+        print("no runs found")
+        return 1
+    print(parsed["run_dir"])
+    metrics = parsed.get("metrics") or {}
+    print(f"status={metrics.get('status')} metric={metrics.get('metric_name')} value={metrics.get('metric_value')}")
+    return 0
+
+
+def cmd_review_last(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    run_dir = latest_run_dir(workspace)
+    if run_dir is None:
+        print("no runs found")
+        return 1
+    review = read_json(run_dir / "review.json", default={})
+    if not review:
+        print(f"review not found in {run_dir}")
+        return 1
+    print(f"{review.get('run_id')} decision={review.get('decision')}")
+    print(review.get("rationale", ""))
+    return 0
+
+
+def cmd_loop(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    results = run_loop_budget(
+        workspace,
+        budget=args.budget,
+        backend=args.backend,
+        topic=args.topic,
+        data_csv=args.data_csv,
+        column=args.column,
+    )
+    for result in results:
+        run = result["run"]
+        metrics = result["metrics"]
+        review = result["review"]
+        print(f"{run['run_id']} status={metrics.get('status')} decision={review.get('decision')} delta={metrics.get('delta')}")
+    return 0
+
+
+def cmd_leaderboard(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    text = read_leaderboard(workspace)
+    print(text, end="" if text.endswith("\n") else "\n")
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="ts-agent", description="Time-series autonomous research loop.")
+    parser.add_argument("--root", default=".", help="Workspace root. Defaults to current directory.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    init_p = subparsers.add_parser("init", help="Initialize research_state and runs directories.")
+    init_p.add_argument("--force", action="store_true", help="Reset generated state files.")
+    init_p.set_defaults(func=cmd_init)
+
+    lit_p = subparsers.add_parser("literature", help="Literature index commands.")
+    lit_sub = lit_p.add_subparsers(dest="literature_command", required=True)
+    lit_build = lit_sub.add_parser("build-index", help="Build read-only paper_index.jsonl from markdown notes.")
+    lit_build.add_argument("--source", required=True, help="Paper-note source directory.")
+    lit_build.add_argument("--limit", type=int, default=None, help="Optional maximum number of notes to index.")
+    lit_build.set_defaults(func=cmd_literature_build_index)
+
+    vibe_p = subparsers.add_parser("vibe", help="Vibe idea commands.")
+    vibe_sub = vibe_p.add_subparsers(dest="vibe_command", required=True)
+    vibe_propose = vibe_sub.add_parser("propose", help="Propose vibe ideas.")
+    vibe_propose.add_argument("--topic", default="forecasting")
+    vibe_propose.add_argument("--count", type=int, default=3)
+    vibe_propose.set_defaults(func=cmd_vibe_propose)
+
+    taste_p = subparsers.add_parser("taste", help="Taste gate commands.")
+    taste_sub = taste_p.add_subparsers(dest="taste_command", required=True)
+    taste_review = taste_sub.add_parser("review", help="Review a vibe idea before running it.")
+    taste_review.add_argument("--idea", required=True)
+    taste_review.set_defaults(func=cmd_taste_review)
+
+    plan_p = subparsers.add_parser("plan-experiment", help="Queue an experiment plan for an idea.")
+    plan_p.add_argument("--idea", required=True)
+    plan_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini"])
+    plan_p.set_defaults(func=cmd_plan_experiment)
+
+    run_p = subparsers.add_parser("run-next", help="Run the next queued or seeded experiment.")
+    run_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini"])
+    run_p.add_argument("--topic", default="forecasting")
+    run_p.add_argument("--data-csv", default=None)
+    run_p.add_argument("--column", default=None)
+    run_p.set_defaults(func=cmd_run_next)
+
+    parse_p = subparsers.add_parser("parse-last", help="Print the latest run metrics.")
+    parse_p.set_defaults(func=cmd_parse_last)
+
+    review_p = subparsers.add_parser("review-last", help="Print the latest strict reviewer decision.")
+    review_p.set_defaults(func=cmd_review_last)
+
+    loop_p = subparsers.add_parser("loop", help="Run a bounded autonomous experiment loop.")
+    loop_p.add_argument("--budget", type=int, required=True)
+    loop_p.add_argument("--backend", default="smoke", choices=["smoke", "dlinear-mini"])
+    loop_p.add_argument("--topic", default="forecasting")
+    loop_p.add_argument("--data-csv", default=None)
+    loop_p.add_argument("--column", default=None)
+    loop_p.set_defaults(func=cmd_loop)
+
+    board_p = subparsers.add_parser("leaderboard", help="Print leaderboard.csv.")
+    board_p.set_defaults(func=cmd_leaderboard)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        return int(args.func(args))
+    except KeyError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    except RuntimeError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
