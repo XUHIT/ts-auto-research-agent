@@ -1,0 +1,871 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-25 12:27:31 UTC",
+  "status": "generated",
+  "summary": {
+    "effect": "1000 paper notes -> locked ETTh1 benchmark -> DLinear baseline 0.59827763 -> CalDLinear improves rmse by 0.00221968. PatchTST remains the stronger reference, so the claim stays bounded.",
+    "baseline": {
+      "run_id": "run_0051",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "DLinear",
+      "role": "baseline_anchor",
+      "metric_name": "rmse",
+      "metric_value": 0.59827763,
+      "baseline": 0.59827763,
+      "delta": 0.0,
+      "decision": "continue",
+      "wall_time_sec": 4.258844,
+      "mae": 0.38131171,
+      "method_claim": "No innovation claim. This run locks the same-protocol metric anchor.",
+      "success_criteria": "The run completes and defines the baseline metric for every later candidate.",
+      "review_rationale": "Baseline anchor established for the controlled comparison suite."
+    },
+    "candidate": {
+      "run_id": "run_0053",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "CalDLinear",
+      "role": "innovation_candidate",
+      "metric_name": "rmse",
+      "metric_value": 0.59605795,
+      "baseline": 0.59827763,
+      "delta": 0.00221968,
+      "decision": "continue",
+      "wall_time_sec": 4.815884,
+      "mae": 0.38774657,
+      "method_claim": "Calendar-conditioned DLinear keeps the linear anchor and adds a small future-time residual, testing whether known horizon calendar structure improves a simple baseline without hiding behind a large backbone.",
+      "success_criteria": "Accept only as a bounded candidate if it improves RMSE over DLinear under the locked benchmark protocol; do not claim SOTA unless it also beats the strong reference arm.",
+      "review_rationale": "Metric improved and post-taste suggests the result can support a research trajectory."
+    },
+    "strong_reference": {
+      "run_id": "run_0052",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "PatchTST",
+      "role": "strong_reference",
+      "metric_name": "rmse",
+      "metric_value": 0.58627319,
+      "baseline": 0.59827763,
+      "delta": 0.01200444,
+      "decision": "continue",
+      "wall_time_sec": 7.335105,
+      "mae": 0.37807289,
+      "method_claim": "Reference arm for checking whether a lightweight candidate is only beating a weak baseline.",
+      "success_criteria": "The reference completes under the same data, budget, and metric protocol.",
+      "review_rationale": "Metric improved and post-taste suggests the result can support a research trajectory."
+    },
+    "claim": "CalDLinear improves RMSE over DLinear by 0.00221968, but PatchTST remains stronger. This is a bounded candidate, not a SOTA claim.",
+    "next_action": "Deepen `CalDLinear` with ablations and more datasets before making a paper-level claim.",
+    "generated_at": "2026-05-25 12:27:31 UTC"
+  },
+  "claim_strength": {
+    "score": 75,
+    "label": "demo-ready bounded claim",
+    "reasons": [
+      "candidate clears the DLinear anchor",
+      "strong reference still wins, so the claim remains bounded",
+      "schema and leakage checks are recorded",
+      "next research move is explicit"
+    ]
+  },
+  "showcase": {
+    "effect": "1000 paper notes -> locked ETTh1 benchmark -> DLinear baseline 0.59827763 -> CalDLinear improves rmse by 0.00221968. PatchTST remains the stronger reference, so the claim stays bounded.",
+    "novelty": [
+      "DLinear is locked as the baseline anchor; project innovation is labeled separately from baselines.",
+      "Paper-note evidence is written into method cards before the benchmark runs.",
+      "The reviewer can keep a bounded candidate while refusing to call it SOTA when a strong reference still wins."
+    ],
+    "usefulness": [
+      "Shows the exact benchmark branch worth deepening and the branch that only clears a weak baseline.",
+      "Records every run as recoverable protocol files for audit and resume.",
+      "Turns local papers, baselines, metrics, and decisions into one reviewable research loop."
+    ],
+    "paper_count": 1000,
+    "results": [
+      {
+        "run_id": "run_0051",
+        "backend": "tsl-simple",
+        "status": "completed",
+        "model": "DLinear",
+        "role": "baseline_anchor",
+        "metric_name": "rmse",
+        "metric_value": 0.59827763,
+        "baseline": 0.59827763,
+        "delta": 0.0,
+        "decision": "continue",
+        "wall_time_sec": 4.258844
+      },
+      {
+        "run_id": "run_0052",
+        "backend": "tsl-simple",
+        "status": "completed",
+        "model": "PatchTST",
+        "role": "strong_reference",
+        "metric_name": "rmse",
+        "metric_value": 0.58627319,
+        "baseline": 0.59827763,
+        "delta": 0.01200444,
+        "decision": "continue",
+        "wall_time_sec": 7.335105
+      },
+      {
+        "run_id": "run_0053",
+        "backend": "tsl-simple",
+        "status": "completed",
+        "model": "CalDLinear",
+        "role": "innovation_candidate",
+        "metric_name": "rmse",
+        "metric_value": 0.59605795,
+        "baseline": 0.59827763,
+        "delta": 0.00221968,
+        "decision": "continue",
+        "wall_time_sec": 4.815884
+      }
+    ],
+    "best_result": {
+      "run_id": "run_0052",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "PatchTST",
+      "role": "strong_reference",
+      "metric_name": "rmse",
+      "metric_value": 0.58627319,
+      "baseline": 0.59827763,
+      "delta": 0.01200444,
+      "decision": "continue",
+      "wall_time_sec": 7.335105
+    },
+    "best_candidate": {
+      "run_id": "run_0053",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "CalDLinear",
+      "role": "innovation_candidate",
+      "metric_name": "rmse",
+      "metric_value": 0.59605795,
+      "baseline": 0.59827763,
+      "delta": 0.00221968,
+      "decision": "continue",
+      "wall_time_sec": 4.815884
+    },
+    "decision_counts": {
+      "continue": 3
+    },
+    "next_action": "Deepen `CalDLinear` with ablations and more datasets before making a paper-level claim.",
+    "artifacts": {
+      "showcase_md": "/home/xu/ts-auto-research-agent/research_state/showcase.md",
+      "leaderboard": "/home/xu/ts-auto-research-agent/research_state/leaderboard.csv",
+      "trajectory": "/home/xu/ts-auto-research-agent/research_state/trajectory.jsonl",
+      "full_demo_report": "/home/xu/ts-auto-research-agent/research_state/full_research_demo_report.md"
+    }
+  },
+  "results": [
+    {
+      "run_id": "run_0051",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "DLinear",
+      "role": "baseline_anchor",
+      "metric_name": "rmse",
+      "metric_value": 0.59827763,
+      "baseline": 0.59827763,
+      "delta": 0.0,
+      "decision": "continue",
+      "wall_time_sec": 4.258844,
+      "mae": 0.38131171,
+      "method_claim": "No innovation claim. This run locks the same-protocol metric anchor.",
+      "success_criteria": "The run completes and defines the baseline metric for every later candidate.",
+      "review_rationale": "Baseline anchor established for the controlled comparison suite."
+    },
+    {
+      "run_id": "run_0052",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "PatchTST",
+      "role": "strong_reference",
+      "metric_name": "rmse",
+      "metric_value": 0.58627319,
+      "baseline": 0.59827763,
+      "delta": 0.01200444,
+      "decision": "continue",
+      "wall_time_sec": 7.335105,
+      "mae": 0.37807289,
+      "method_claim": "Reference arm for checking whether a lightweight candidate is only beating a weak baseline.",
+      "success_criteria": "The reference completes under the same data, budget, and metric protocol.",
+      "review_rationale": "Metric improved and post-taste suggests the result can support a research trajectory."
+    },
+    {
+      "run_id": "run_0053",
+      "backend": "tsl-simple",
+      "status": "completed",
+      "model": "CalDLinear",
+      "role": "innovation_candidate",
+      "metric_name": "rmse",
+      "metric_value": 0.59605795,
+      "baseline": 0.59827763,
+      "delta": 0.00221968,
+      "decision": "continue",
+      "wall_time_sec": 4.815884,
+      "mae": 0.38774657,
+      "method_claim": "Calendar-conditioned DLinear keeps the linear anchor and adds a small future-time residual, testing whether known horizon calendar structure improves a simple baseline without hiding behind a large backbone.",
+      "success_criteria": "Accept only as a bounded candidate if it improves RMSE over DLinear under the locked benchmark protocol; do not claim SOTA unless it also beats the strong reference arm.",
+      "review_rationale": "Metric improved and post-taste suggests the result can support a research trajectory."
+    }
+  ],
+  "literature_evidence": [
+    {
+      "title": "APT: Affine Prototype-Timestamp For Time Series Forecasting Under Distribution Shift",
+      "venue": "AAAI_2026",
+      "lesson": "Prototype or timestamp-conditioned affine structure motivates using known horizon context instead of only local instance statistics."
+    },
+    {
+      "title": "Reversible Instance Normalization for Accurate Time-Series Forecasting Against Distribution Shift",
+      "venue": "ICLR_2022",
+      "lesson": "Reversible normalization can help distribution shift, but its lookback-to-horizon statistic assumption must be tested."
+    },
+    {
+      "title": "A Time Series is Worth 64 Words: Long-term Forecasting with Transformers (PatchTST)",
+      "venue": "ICLR_2023",
+      "lesson": "Patch-based strong references prevent overstating a DLinear-only improvement."
+    },
+    {
+      "title": "An Analysis of Linear Time Series Forecasting Models",
+      "venue": "ICML_2024",
+      "lesson": "Recent linear-model analysis suggests constraints, normalization, and simple residual structure may matter more than adding heavy backbones."
+    },
+    {
+      "title": "SIN: Selective and Interpretable Normalization for Long-Term Time Series Forecasting",
+      "venue": "ICML_2024",
+      "lesson": "Selective normalization argues against one fixed statistic for every series and motivates gated lightweight adapters."
+    }
+  ],
+  "role_lanes": [
+    {
+      "lane_id": "planner",
+      "display_name": "Planner",
+      "mission": "Turn literature signals and taste constraints into a bounded, testable hypothesis.",
+      "owns": [
+        "literature context",
+        "idea selection",
+        "experiment protocol"
+      ],
+      "task_ids": [
+        "literature_curator",
+        "idea_scout",
+        "taste_reviewer",
+        "experiment_planner"
+      ],
+      "status": "completed",
+      "task_summaries": [
+        "Indexed 1000 paper notes for topic `forecasting`.",
+        "Proposed 3 research ideas and selected `vibe_062` for the next gate.",
+        "Pre-run taste gate returned `approved` with total score `31`.",
+        "Prepared a bounded `tsl-simple` plan with budget `1`."
+      ]
+    },
+    {
+      "lane_id": "engineer",
+      "display_name": "Engineer",
+      "mission": "Bind the hypothesis to model code, baseline registry, dataset contracts, and run commands.",
+      "owns": [
+        "model registry",
+        "schema validation",
+        "code-change summary"
+      ],
+      "task_ids": [
+        "scope_manager",
+        "code_engineer"
+      ],
+      "status": "completed",
+      "task_summaries": [
+        "Active scope `general-ts-two-libs` contains 2 assets; Time-Series-Library_simple adapter is available.",
+        "Registered DLinear as anchor, 1 strong references, and 2 candidate methods before execution."
+      ]
+    },
+    {
+      "lane_id": "executor",
+      "display_name": "Executor",
+      "mission": "Launch the selected backend and preserve stdout, stderr, metrics, and reproducible commands.",
+      "owns": [
+        "training execution",
+        "run artifacts",
+        "leaderboard updates"
+      ],
+      "task_ids": [
+        "experiment_runner"
+      ],
+      "status": "completed",
+      "task_summaries": [
+        "Executed the staged `tsl-simple` plan and produced 3 run directories."
+      ]
+    },
+    {
+      "lane_id": "evaluator",
+      "display_name": "Evaluator",
+      "mission": "Check metrics, fairness, leakage risk, post-result taste, and continue/pivot/kill decisions.",
+      "owns": [
+        "metric audit",
+        "fairness checks",
+        "review decision"
+      ],
+      "task_ids": [
+        "result_reviewer"
+      ],
+      "status": "completed",
+      "task_summaries": [
+        "Reviewed executed runs with decision counts {'continue': 3}. Best metric: `PatchTST` with value `0.58627319`."
+      ]
+    },
+    {
+      "lane_id": "reporter",
+      "display_name": "Reporter",
+      "mission": "Convert the research trace into a visual cockpit, report packet, and paper-ready material.",
+      "owns": [
+        "dashboard",
+        "PDF report",
+        "research summary"
+      ],
+      "task_ids": [
+        "synthesis_agent",
+        "reporter_agent"
+      ],
+      "status": "completed",
+      "task_summaries": [
+        "Compiled the multi-agent trace into a recoverable orchestration artifact.",
+        "Prepared the demo packet boundary: cockpit, dashboard, monitor, PDF report, leaderboard, and trace."
+      ]
+    }
+  ],
+  "validations": [
+    {
+      "run_id": "run_0051",
+      "schema": {
+        "schema_version": 1,
+        "experiment": {
+          "run_id": "run_0051",
+          "plan_id": "full_demo_tsl_simple_01_dlinear",
+          "idea_id": "vibe_065",
+          "hypothesis_id": "full_demo_tsl_simple_dlinear",
+          "backend": "tsl-simple",
+          "hypothesis": "Reproduce DLinear as the locked DLinear baseline anchor for the benchmark study.",
+          "success_criteria": "The run completes and defines the baseline metric for every later candidate.",
+          "kill_criteria": "A blocked or unstable baseline invalidates the benchmark protocol."
+        },
+        "dataset": {
+          "name": "ETTh1.csv",
+          "features": "M",
+          "target": null,
+          "seq_len": 24,
+          "label_len": 12,
+          "pred_len": 24,
+          "subset_ratio": 0.05,
+          "split_policy": "chronological_split_from_backend"
+        },
+        "model": {
+          "name": "DLinear",
+          "role": "baseline_anchor",
+          "claim": "No innovation claim. This run locks the same-protocol metric anchor.",
+          "changed_config_summary": "Use literature-grounded idea `vibe_065` to evaluate DLinear on Time-Series-Library_simple under a controlled ETTh1 setting."
+        },
+        "baseline": {
+          "anchor_model": "DLinear",
+          "anchor_metric": null,
+          "strong_reference": "PatchTST",
+          "controls": [
+            "RLinear",
+            "MLP",
+            "LSTNet"
+          ]
+        },
+        "evaluation": {
+          "metric_name": "rmse",
+          "optimize": "minimize",
+          "seed": 2021,
+          "train_epochs": 3,
+          "batch_size": 16,
+          "learning_rate": "0.001",
+          "patience": 1,
+          "timeout_sec": 240
+        },
+        "ablation": {
+          "required_for_candidate": false,
+          "minimum_grid": [
+            "DLinear anchor",
+            "strong reference arm",
+            "candidate full model",
+            "candidate without the proposed mechanism",
+            "normalization or capacity control when applicable"
+          ]
+        },
+        "leakage_policy": {
+          "temporal_order": "train/validation/test must preserve chronological order",
+          "future_covariates": "future covariates may contain calendar or known timestamp features only, never future target values",
+          "metric_visibility": "metrics are read only after command execution and are not used to modify the same run"
+        },
+        "artifacts": {
+          "run_dir": "/home/xu/ts-auto-research-agent/runs/run_0051",
+          "command": "/home/xu/anaconda3/envs/time_series_library/bin/python3.10 run.py --is_training 1 --model_id tsagent_run_0051_DLinear --model DLinear --data ETTh1.csv --features M --seq_len 24 --label_len 12 --pred_len 24 --enc_in 7 --dec_in 7 --c_out 7 --d_model 64 --d_ff 64 --train_epochs 3 --seed 2021 --itr 1 --batch_size 16 --num_workers 0 --learning_rate 0.001 --patience 1 --des tsagent_full_demo --use_swanlab 0 --subset_ratio 0.05",
+          "stdout": "stdout.log",
+          "stderr": "stderr.log",
+          "metrics": "metrics.json",
+          "review": "review.md"
+        }
+      },
+      "validation": {
+        "schema_version": 1,
+        "status": "valid",
+        "errors": [],
+        "warnings": [],
+        "fairness_checks": [
+          {
+            "name": "locked_dataset",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "ETTh1.csv"
+          },
+          {
+            "name": "locked_horizon",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "seq_len=24 pred_len=24"
+          },
+          {
+            "name": "locked_metric",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "rmse"
+          },
+          {
+            "name": "seed_recorded",
+            "status": "pass",
+            "severity": "warning",
+            "evidence": "2021"
+          },
+          {
+            "name": "budget_recorded",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "epochs=3 batch=16"
+          },
+          {
+            "name": "baseline_declared",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "DLinear"
+          }
+        ],
+        "leakage_checks": [
+          {
+            "name": "chronological_split_policy",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "chronological_split_from_backend"
+          },
+          {
+            "name": "future_covariate_policy",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "future covariates may contain calendar or known timestamp features only, never future target values"
+          },
+          {
+            "name": "metric_after_execution",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "metrics are read only after command execution and are not used to modify the same run"
+          }
+        ],
+        "summary": "0 errors, 0 warnings, 0 failed required checks"
+      }
+    },
+    {
+      "run_id": "run_0052",
+      "schema": {
+        "schema_version": 1,
+        "experiment": {
+          "run_id": "run_0052",
+          "plan_id": "full_demo_tsl_simple_02_patchtst",
+          "idea_id": "vibe_065",
+          "hypothesis_id": "full_demo_tsl_simple_patchtst",
+          "backend": "tsl-simple",
+          "hypothesis": "Run PatchTST as a strong reference so a candidate cannot be oversold against DLinear only.",
+          "success_criteria": "The reference completes under the same data, budget, and metric protocol.",
+          "kill_criteria": "A blocked reference is recorded, but it is not treated as project innovation."
+        },
+        "dataset": {
+          "name": "ETTh1.csv",
+          "features": "M",
+          "target": null,
+          "seq_len": 24,
+          "label_len": 12,
+          "pred_len": 24,
+          "subset_ratio": 0.05,
+          "split_policy": "chronological_split_from_backend"
+        },
+        "model": {
+          "name": "PatchTST",
+          "role": "strong_reference",
+          "claim": "Reference arm for checking whether a lightweight candidate is only beating a weak baseline.",
+          "changed_config_summary": "Use literature-grounded idea `vibe_065` to evaluate PatchTST on Time-Series-Library_simple under a controlled ETTh1 setting."
+        },
+        "baseline": {
+          "anchor_model": "DLinear",
+          "anchor_metric": 0.59827763,
+          "strong_reference": "PatchTST",
+          "controls": [
+            "RLinear",
+            "MLP",
+            "LSTNet"
+          ]
+        },
+        "evaluation": {
+          "metric_name": "rmse",
+          "optimize": "minimize",
+          "seed": 2021,
+          "train_epochs": 3,
+          "batch_size": 16,
+          "learning_rate": "0.001",
+          "patience": 1,
+          "timeout_sec": 240
+        },
+        "ablation": {
+          "required_for_candidate": false,
+          "minimum_grid": [
+            "DLinear anchor",
+            "strong reference arm",
+            "candidate full model",
+            "candidate without the proposed mechanism",
+            "normalization or capacity control when applicable"
+          ]
+        },
+        "leakage_policy": {
+          "temporal_order": "train/validation/test must preserve chronological order",
+          "future_covariates": "future covariates may contain calendar or known timestamp features only, never future target values",
+          "metric_visibility": "metrics are read only after command execution and are not used to modify the same run"
+        },
+        "artifacts": {
+          "run_dir": "/home/xu/ts-auto-research-agent/runs/run_0052",
+          "command": "/home/xu/anaconda3/envs/time_series_library/bin/python3.10 run.py --is_training 1 --model_id tsagent_run_0052_PatchTST --model PatchTST --data ETTh1.csv --features M --seq_len 24 --label_len 12 --pred_len 24 --enc_in 7 --dec_in 7 --c_out 7 --d_model 64 --d_ff 64 --train_epochs 3 --seed 2021 --itr 1 --batch_size 16 --num_workers 0 --learning_rate 0.001 --patience 1 --des tsagent_full_demo --use_swanlab 0 --subset_ratio 0.05",
+          "stdout": "stdout.log",
+          "stderr": "stderr.log",
+          "metrics": "metrics.json",
+          "review": "review.md"
+        }
+      },
+      "validation": {
+        "schema_version": 1,
+        "status": "valid",
+        "errors": [],
+        "warnings": [],
+        "fairness_checks": [
+          {
+            "name": "locked_dataset",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "ETTh1.csv"
+          },
+          {
+            "name": "locked_horizon",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "seq_len=24 pred_len=24"
+          },
+          {
+            "name": "locked_metric",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "rmse"
+          },
+          {
+            "name": "seed_recorded",
+            "status": "pass",
+            "severity": "warning",
+            "evidence": "2021"
+          },
+          {
+            "name": "budget_recorded",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "epochs=3 batch=16"
+          },
+          {
+            "name": "baseline_declared",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "DLinear"
+          }
+        ],
+        "leakage_checks": [
+          {
+            "name": "chronological_split_policy",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "chronological_split_from_backend"
+          },
+          {
+            "name": "future_covariate_policy",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "future covariates may contain calendar or known timestamp features only, never future target values"
+          },
+          {
+            "name": "metric_after_execution",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "metrics are read only after command execution and are not used to modify the same run"
+          }
+        ],
+        "summary": "0 errors, 0 warnings, 0 failed required checks"
+      }
+    },
+    {
+      "run_id": "run_0053",
+      "schema": {
+        "schema_version": 1,
+        "experiment": {
+          "run_id": "run_0053",
+          "plan_id": "full_demo_tsl_simple_03_caldlinear",
+          "idea_id": "vibe_065",
+          "hypothesis_id": "full_demo_tsl_simple_caldlinear",
+          "backend": "tsl-simple",
+          "hypothesis": "Calendar-conditioned DLinear keeps the linear anchor and adds a small future-time residual, testing whether known horizon calendar structure improves a simple baseline without hiding behind a large backbone.",
+          "success_criteria": "Accept only as a bounded candidate if it improves RMSE over DLinear under the locked benchmark protocol; do not claim SOTA unless it also beats the strong reference arm.",
+          "kill_criteria": "Kill or pivot if it cannot beat the DLinear baseline or if secondary diagnostics undermine the story."
+        },
+        "dataset": {
+          "name": "ETTh1.csv",
+          "features": "M",
+          "target": null,
+          "seq_len": 24,
+          "label_len": 12,
+          "pred_len": 24,
+          "subset_ratio": 0.05,
+          "split_policy": "chronological_split_from_backend"
+        },
+        "model": {
+          "name": "CalDLinear",
+          "role": "innovation_candidate",
+          "claim": "Calendar-conditioned DLinear keeps the linear anchor and adds a small future-time residual, testing whether known horizon calendar structure improves a simple baseline without hiding behind a large backbone.",
+          "changed_config_summary": "Use literature-grounded idea `vibe_065` to evaluate CalDLinear on Time-Series-Library_simple under a controlled ETTh1 setting."
+        },
+        "baseline": {
+          "anchor_model": "DLinear",
+          "anchor_metric": 0.59827763,
+          "strong_reference": "PatchTST",
+          "controls": [
+            "RLinear",
+            "MLP",
+            "LSTNet"
+          ]
+        },
+        "evaluation": {
+          "metric_name": "rmse",
+          "optimize": "minimize",
+          "seed": 2021,
+          "train_epochs": 3,
+          "batch_size": 16,
+          "learning_rate": "0.001",
+          "patience": 1,
+          "timeout_sec": 240
+        },
+        "ablation": {
+          "required_for_candidate": true,
+          "minimum_grid": [
+            "DLinear anchor",
+            "strong reference arm",
+            "candidate full model",
+            "candidate without the proposed mechanism",
+            "normalization or capacity control when applicable"
+          ]
+        },
+        "leakage_policy": {
+          "temporal_order": "train/validation/test must preserve chronological order",
+          "future_covariates": "future covariates may contain calendar or known timestamp features only, never future target values",
+          "metric_visibility": "metrics are read only after command execution and are not used to modify the same run"
+        },
+        "artifacts": {
+          "run_dir": "/home/xu/ts-auto-research-agent/runs/run_0053",
+          "command": "/home/xu/anaconda3/envs/time_series_library/bin/python3.10 run.py --is_training 1 --model_id tsagent_run_0053_CalDLinear --model CalDLinear --data ETTh1.csv --features M --seq_len 24 --label_len 12 --pred_len 24 --enc_in 7 --dec_in 7 --c_out 7 --d_model 64 --d_ff 64 --train_epochs 3 --seed 2021 --itr 1 --batch_size 16 --num_workers 0 --learning_rate 0.001 --patience 1 --des tsagent_full_demo --use_swanlab 0 --subset_ratio 0.05",
+          "stdout": "stdout.log",
+          "stderr": "stderr.log",
+          "metrics": "metrics.json",
+          "review": "review.md"
+        }
+      },
+      "validation": {
+        "schema_version": 1,
+        "status": "valid",
+        "errors": [],
+        "warnings": [],
+        "fairness_checks": [
+          {
+            "name": "locked_dataset",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "ETTh1.csv"
+          },
+          {
+            "name": "locked_horizon",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "seq_len=24 pred_len=24"
+          },
+          {
+            "name": "locked_metric",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "rmse"
+          },
+          {
+            "name": "seed_recorded",
+            "status": "pass",
+            "severity": "warning",
+            "evidence": "2021"
+          },
+          {
+            "name": "budget_recorded",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "epochs=3 batch=16"
+          },
+          {
+            "name": "baseline_declared",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "DLinear"
+          }
+        ],
+        "leakage_checks": [
+          {
+            "name": "chronological_split_policy",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "chronological_split_from_backend"
+          },
+          {
+            "name": "future_covariate_policy",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "future covariates may contain calendar or known timestamp features only, never future target values"
+          },
+          {
+            "name": "metric_after_execution",
+            "status": "pass",
+            "severity": "error",
+            "evidence": "metrics are read only after command execution and are not used to modify the same run"
+          }
+        ],
+        "summary": "0 errors, 0 warnings, 0 failed required checks"
+      }
+    }
+  ],
+  "baseline_registry": {
+    "schema_version": 1,
+    "baseline_anchor": "DLinear",
+    "strong_references": [
+      "PatchTST"
+    ],
+    "innovation_candidates": [
+      "CalDLinear",
+      "PSLinear"
+    ],
+    "controls": [
+      "RLinear",
+      "MLP",
+      "LSTNet"
+    ],
+    "models": [
+      {
+        "name": "DLinear",
+        "role": "baseline_anchor",
+        "display_role": "DLinear baseline anchor",
+        "claim": "No innovation claim. This run locks the same-protocol metric anchor.",
+        "acceptance": "Must complete and define the comparison baseline."
+      },
+      {
+        "name": "PatchTST",
+        "role": "strong_reference",
+        "display_role": "strong published reference",
+        "claim": "Reference arm for checking whether a lightweight candidate is only beating a weak baseline.",
+        "acceptance": "Used as a strong comparator, not counted as this project innovation."
+      },
+      {
+        "name": "CalDLinear",
+        "role": "innovation_candidate",
+        "display_role": "literature-grounded innovation candidate",
+        "claim": "Calendar-conditioned DLinear keeps the linear anchor and adds a small future-time residual, testing whether known horizon calendar structure improves a simple baseline without hiding behind a large backbone.",
+        "acceptance": "Accept only as a bounded candidate if it improves RMSE over DLinear under the locked benchmark protocol; do not claim SOTA unless it also beats the strong reference arm."
+      },
+      {
+        "name": "PSLinear",
+        "role": "innovation_candidate",
+        "display_role": "literature-grounded innovation candidate",
+        "claim": "Predictive-state Linear keeps DLinear raw-scale behavior and adds a selective instance-normalized branch.",
+        "acceptance": "Accept only if the selective branch improves DLinear and does not degrade secondary diagnostics."
+      },
+      {
+        "name": "RLinear",
+        "role": "baseline_control",
+        "display_role": "normalization control",
+        "claim": "Control arm for reversible instance normalization, not a new contribution.",
+        "acceptance": "Used to test whether the candidate is better than plain reversible normalization."
+      },
+      {
+        "name": "MLP",
+        "role": "baseline_control",
+        "display_role": "simple nonlinear control",
+        "claim": "Control arm for a small nonlinear baseline.",
+        "acceptance": "Useful only if it changes the interpretation of the baseline suite."
+      },
+      {
+        "name": "LSTNet",
+        "role": "baseline_control",
+        "display_role": "legacy architecture control",
+        "claim": "Control arm for an older CNN/RNN temporal-pattern architecture.",
+        "acceptance": "Useful as a rejected branch or diagnostic control, not as the primary innovation."
+      }
+    ],
+    "literature_evidence": [
+      {
+        "title": "APT: Affine Prototype-Timestamp For Time Series Forecasting Under Distribution Shift",
+        "venue": "AAAI_2026",
+        "lesson": "Prototype or timestamp-conditioned affine structure motivates using known horizon context instead of only local instance statistics."
+      },
+      {
+        "title": "Reversible Instance Normalization for Accurate Time-Series Forecasting Against Distribution Shift",
+        "venue": "ICLR_2022",
+        "lesson": "Reversible normalization can help distribution shift, but its lookback-to-horizon statistic assumption must be tested."
+      },
+      {
+        "title": "A Time Series is Worth 64 Words: Long-term Forecasting with Transformers (PatchTST)",
+        "venue": "ICLR_2023",
+        "lesson": "Patch-based strong references prevent overstating a DLinear-only improvement."
+      },
+      {
+        "title": "An Analysis of Linear Time Series Forecasting Models",
+        "venue": "ICML_2024",
+        "lesson": "Recent linear-model analysis suggests constraints, normalization, and simple residual structure may matter more than adding heavy backbones."
+      },
+      {
+        "title": "SIN: Selective and Interpretable Normalization for Long-Term Time Series Forecasting",
+        "venue": "ICML_2024",
+        "lesson": "Selective normalization argues against one fixed statistic for every series and motivates gated lightweight adapters."
+      }
+    ],
+    "claim_policy": [
+      "A candidate must first beat the locked DLinear anchor under the same dataset, horizon, metric, and budget.",
+      "A DLinear-only improvement is reported as a bounded signal until it is checked against a strong reference.",
+      "Reviewer decisions are restricted to continue, kill, pivot, or needs_human_confirmation."
+    ]
+  },
+  "artifacts": {
+    "dashboard_html": "/home/xu/ts-auto-research-agent/docs/demo_results/dashboard.html",
+    "monitor_html": "/home/xu/ts-auto-research-agent/docs/demo_results/monitor.html",
+    "research_cockpit_html": "/home/xu/ts-auto-research-agent/docs/demo_results/research_cockpit.html",
+    "pdf_report": "/home/xu/ts-auto-research-agent/docs/demo_results/benchmark_report.pdf",
+    "metrics_svg": "/home/xu/ts-auto-research-agent/docs/demo_results/figures/benchmark_metrics.svg",
+    "delta_svg": "/home/xu/ts-auto-research-agent/docs/demo_results/figures/delta_vs_dlinear.svg",
+    "demo_packet_json": "/home/xu/ts-auto-research-agent/docs/demo_results/demo_packet.json",
+    "state_demo_packet_json": "/home/xu/ts-auto-research-agent/research_state/demo_packet.json"
+  }
+}

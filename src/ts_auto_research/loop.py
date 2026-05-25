@@ -7,6 +7,7 @@ from typing import Any
 from .io_utils import ensure_dir, read_json, write_json, write_yaml
 from .paths import Workspace
 from .planner import mark_plan_status, next_queued_plan, plan_experiment
+from .protocol import write_protocol_bundle
 from .registry import latest_metrics, latest_run_dir, leaderboard_text, register_run
 from .reviewer import review_run, review_to_markdown
 from .runners import run_backend
@@ -77,6 +78,14 @@ def run_next(
     column: str | None = None,
 ) -> dict[str, Any]:
     plan = ensure_seed_plan(workspace, topic=topic, backend=backend)
+    plan = dict(plan)
+    config = dict(plan.get("config", {}))
+    if data_csv:
+        config["data_csv"] = data_csv
+        config["data"] = data_csv
+    if column:
+        config["target"] = column
+    plan["config"] = config
     idea = get_vibe(workspace, plan["idea_id"])
     taste_pre = get_pre_taste(workspace, plan["idea_id"]) or review_idea(workspace, plan["idea_id"])
     run_id = next_run_id(workspace)
@@ -102,6 +111,7 @@ def run_next(
     command_path = run_dir / "command.sh"
     command_path.write_text(f"#!/usr/bin/env bash\nset -euo pipefail\n{command}\n", encoding="utf-8")
     command_path.chmod(command_path.stat().st_mode | 0o111)
+    write_protocol_bundle(workspace, run_dir, plan, run, command=command)
 
     metrics, stdout = run_backend(backend, run_id, plan, data_csv=data_csv, column=column)
     (run_dir / "stdout.log").write_text(stdout, encoding="utf-8")

@@ -1,4 +1,4 @@
-run_id,role,model,metric_name,metric_value,mae,baseline,delta,decision
-run_0048,baseline_anchor,DLinear,rmse,0.59827763,0.38131171,0.59827763,0.0,continue
-run_0049,strong_reference,PatchTST,rmse,0.58627319,0.37807289,0.59827763,0.01200444,continue
-run_0050,innovation_candidate,CalDLinear,rmse,0.59605795,0.38774657,0.59827763,0.00221968,continue
+run_id,hypothesis_id,backend,status,metric_name,metric_value,baseline,delta,wall_time_sec,next_action
+run_0051,full_demo_tsl_simple_dlinear,tsl-simple,completed,rmse,0.59827763,0.59827763,0.0,4.258844,continue
+run_0052,full_demo_tsl_simple_patchtst,tsl-simple,completed,rmse,0.58627319,0.59827763,0.01200444,7.335105,continue
+run_0053,full_demo_tsl_simple_caldlinear,tsl-simple,completed,rmse,0.59605795,0.59827763,0.00221968,4.815884,continue

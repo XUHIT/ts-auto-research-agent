@@ -10,6 +10,7 @@ from .literature import build_index, read_index
 from .methods import default_full_research_models, display_role_for_model, method_card_for_model, role_for_model, select_literature_evidence
 from .multiagent import run_research_crew
 from .paths import Workspace
+from .protocol import write_baseline_registry, write_protocol_bundle
 from .registry import register_run
 from .reviewer import review_run, review_to_markdown
 from .runners import run_backend
@@ -118,11 +119,13 @@ def run_tsl_simple_demo(
             "d_model": 64,
             "d_ff": 64,
             "train_epochs": train_epochs,
+            "seed": 2021,
             "batch_size": 16,
             "num_workers": 0,
             "learning_rate": "0.001",
             "patience": 1,
             "subset_ratio": subset_ratio,
+            "split_policy": "chronological_split_from_backend",
             "timeout_sec": 240,
             "des": "tsagent_demo",
         }
@@ -168,6 +171,7 @@ def run_tsl_simple_demo(
         command_path = run_dir / "command.sh"
         command_path.write_text(f"#!/usr/bin/env bash\nset -euo pipefail\ncd {metrics.get('diagnostics', {}).get('repo_path', '.')}\n{_shell_command_from_metrics(metrics)}\n", encoding="utf-8")
         command_path.chmod(command_path.stat().st_mode | 0o111)
+        write_protocol_bundle(workspace, run_dir, plan, run, command=_shell_command_from_metrics(metrics))
 
         write_json(run_dir / "metrics.json", metrics)
         taste_after = post_taste(run, metrics)
@@ -254,6 +258,7 @@ def run_full_research_demo(
 
     literature_result = build_index(workspace, paper_source, limit=literature_limit)
     literature_records = read_index(workspace, limit=1000)
+    write_baseline_registry(workspace, literature_records)
     ideas = propose_vibes(workspace, topic=topic, count=3)
     idea = ideas[0]
     taste_pre = get_pre_taste(workspace, idea["id"]) or review_idea(workspace, idea["id"])
@@ -274,11 +279,13 @@ def run_full_research_demo(
             "d_model": 64,
             "d_ff": 64,
             "train_epochs": train_epochs,
+            "seed": 2021,
             "batch_size": 16,
             "num_workers": 0,
             "learning_rate": "0.001",
             "patience": 1,
             "subset_ratio": subset_ratio,
+            "split_policy": "chronological_split_from_backend",
             "timeout_sec": 240,
             "des": "tsagent_full_demo",
         }
@@ -335,6 +342,7 @@ def run_full_research_demo(
             encoding="utf-8",
         )
         command_path.chmod(command_path.stat().st_mode | 0o111)
+        write_protocol_bundle(workspace, run_dir, plan, run, command=_shell_command_from_metrics(metrics))
 
         write_json(run_dir / "metrics.json", metrics)
         taste_after = post_taste(run, metrics)

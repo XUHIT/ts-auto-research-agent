@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TS Auto Research Agent Cockpit</title>
+  <style>
+    :root { --ink:#172033; --muted:#526071; --line:#d8e0ea; --panel:#f7f9fc; --good:#1f7a4d; --warn:#b45309; --accent:#c2410c; }
+    body { margin:0; font-family: Inter, Arial, Helvetica, sans-serif; color:var(--ink); background:#ffffff; }
+    main { max-width:1240px; margin:0 auto; padding:26px 22px 48px; }
+    h1 { font-size:31px; line-height:1.12; margin:0 0 8px; letter-spacing:0; }
+    h2 { font-size:18px; margin:26px 0 12px; }
+    p { color:var(--muted); line-height:1.52; }
+    .top { display:grid; grid-template-columns:1.35fr .65fr; gap:18px; align-items:stretch; border-bottom:1px solid var(--line); padding-bottom:18px; }
+    .claim { border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }
+    .score { border-radius:8px; background:var(--panel); padding:16px; border:1px solid var(--line); }
+    .score-number { font-size:42px; font-weight:800; color:var(--accent); }
+    .bar { height:10px; background:#e5eaf1; border-radius:999px; overflow:hidden; margin:8px 0 10px; }
+    .bar span { display:block; height:100%; background:var(--accent); width:75%; }
+    .lanes { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }
+    .lane, .panel { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fff; }
+    .lane strong { display:block; margin-bottom:5px; }
+    .status { display:inline-block; border-radius:999px; padding:3px 8px; font-size:12px; font-weight:700; background:#edf2f7; color:#2d3748; }
+    .status-completed, .status-valid, .status-pass { background:#ecfdf3; color:var(--good); }
+    .status-warning, .status-attention_required { background:#fff7ed; color:var(--warn); }
+    .status-invalid, .status-fail { background:#fef2f2; color:#b91c1c; }
+    .badge { display:inline-block; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; background:#edf2f7; }
+    .role-baseline_anchor { background:#edf2f7; color:#2d3748; }
+    .role-strong_reference { background:#ebf8ff; color:#2b6cb0; }
+    .role-innovation_candidate { background:#fff7ed; color:#c05621; }
+    .flow { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }
+    .flow .panel { min-height:128px; }
+    .charts { display:grid; grid-template-columns:1fr; gap:16px; }
+    .chart { border:1px solid var(--line); border-radius:8px; padding:10px; overflow:auto; }
+    .chart img { max-width:100%; display:block; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { border-bottom:1px solid var(--line); padding:9px 8px; text-align:left; vertical-align:top; }
+    th { background:var(--panel); }
+    code { background:#f1f5f9; border-radius:4px; padding:1px 4px; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    ul { padding-left:20px; }
+    @media (max-width: 900px) { .top, .two, .flow, .lanes { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div>
+      <h1>Single-Benchmark Research Cockpit</h1>
+      <p>1000 paper notes -&gt; locked ETTh1 benchmark -&gt; DLinear baseline 0.59827763 -&gt; CalDLinear improves rmse by 0.00221968. PatchTST remains the stronger reference, so the claim stays bounded.</p>
+      <div class="claim"><strong>Current claim:</strong> CalDLinear improves RMSE over DLinear by 0.00221968, but PatchTST remains stronger. This is a bounded candidate, not a SOTA claim.</div>
+    </div>
+    <div class="score">
+      <div class="score-number">75</div>
+      <div class="bar"><span></span></div>
+      <strong>demo-ready bounded claim</strong>
+      <p>candidate clears the DLinear anchor; strong reference still wins, so the claim remains bounded; schema and leakage checks are recorded; next research move is explicit</p>
+    </div>
+  </section>
+
+  <h2>Multi-Agent Orchestration</h2>
+  <section class="lanes"><div class="lane"><strong>Planner</strong><span class="status status-completed">completed</span><p>Turn literature signals and taste constraints into a bounded, testable hypothesis.</p><p><small>literature context, idea selection, experiment protocol</small></p></div>
+<div class="lane"><strong>Engineer</strong><span class="status status-completed">completed</span><p>Bind the hypothesis to model code, baseline registry, dataset contracts, and run commands.</p><p><small>model registry, schema validation, code-change summary</small></p></div>
+<div class="lane"><strong>Executor</strong><span class="status status-completed">completed</span><p>Launch the selected backend and preserve stdout, stderr, metrics, and reproducible commands.</p><p><small>training execution, run artifacts, leaderboard updates</small></p></div>
+<div class="lane"><strong>Evaluator</strong><span class="status status-completed">completed</span><p>Check metrics, fairness, leakage risk, post-result taste, and continue/pivot/kill decisions.</p><p><small>metric audit, fairness checks, review decision</small></p></div>
+<div class="lane"><strong>Reporter</strong><span class="status status-completed">completed</span><p>Convert the research trace into a visual cockpit, report packet, and paper-ready material.</p><p><small>dashboard, PDF report, research summary</small></p></div></section>
+
+  <h2>Research Flow</h2>
+  <section class="flow">
+    <div class="panel"><strong>Literature</strong><p>5 selected signals from the time-series paper library.</p></div>
+    <div class="panel"><strong>Idea and Taste</strong><p>vibe_062 is gated before budget allocation.</p></div>
+    <div class="panel"><strong>Method</strong><p>anchor=DLinear strong=PatchTST candidates=CalDLinear, PSLinear</p></div>
+    <div class="panel"><strong>Execution</strong><p>Locked dataset, horizon, metric, seed, and command are stored per run.</p></div>
+    <div class="panel"><strong>Decision</strong><p>Deepen `CalDLinear` with ablations and more datasets before making a paper-level claim.</p></div>
+  </section>
+
+  <h2>Metrics</h2>
+  <section class="charts">
+    <div class="chart"><img src="figures/benchmark_metrics.svg" alt="RMSE and MAE by method"></div>
+    <div class="chart"><img src="figures/delta_vs_dlinear.svg" alt="Delta vs DLinear baseline"></div>
+  </section>
+
+  <h2>Benchmark Rows</h2>
+  <table><thead><tr><th>Run</th><th>Role</th><th>Model</th><th>RMSE</th><th>MAE</th><th>Delta</th><th>Decision</th></tr></thead><tbody><tr><td><code>run_0051</code></td><td><span class="badge role-baseline_anchor">baseline_anchor</span></td><td>DLinear</td><td>0.59827763</td><td>0.38131171</td><td>0</td><td>continue</td></tr>
+<tr><td><code>run_0052</code></td><td><span class="badge role-strong_reference">strong_reference</span></td><td>PatchTST</td><td>0.58627319</td><td>0.37807289</td><td>0.01200444</td><td>continue</td></tr>
+<tr><td><code>run_0053</code></td><td><span class="badge role-innovation_candidate">innovation_candidate</span></td><td>CalDLinear</td><td>0.59605795</td><td>0.38774657</td><td>0.00221968</td><td>continue</td></tr></tbody></table>
+
+  <section class="two">
+    <div>
+      <h2>Protocol Validation</h2>
+      <div class="panel"><strong><code>run_0051</code></strong> <span class="status status-valid">valid</span><ul><li><span class="status status-pass">pass</span> locked_dataset</li><li><span class="status status-pass">pass</span> locked_horizon</li><li><span class="status status-pass">pass</span> locked_metric</li><li><span class="status status-pass">pass</span> seed_recorded</li><li><span class="status status-pass">pass</span> budget_recorded</li><li><span class="status status-pass">pass</span> baseline_declared</li><li><span class="status status-pass">pass</span> chronological_split_policy</li><li><span class="status status-pass">pass</span> future_covariate_policy</li></ul></div>
+<div class="panel"><strong><code>run_0052</code></strong> <span class="status status-valid">valid</span><ul><li><span class="status status-pass">pass</span> locked_dataset</li><li><span class="status status-pass">pass</span> locked_horizon</li><li><span class="status status-pass">pass</span> locked_metric</li><li><span class="status status-pass">pass</span> seed_recorded</li><li><span class="status status-pass">pass</span> budget_recorded</li><li><span class="status status-pass">pass</span> baseline_declared</li><li><span class="status status-pass">pass</span> chronological_split_policy</li><li><span class="status status-pass">pass</span> future_covariate_policy</li></ul></div>
+<div class="panel"><strong><code>run_0053</code></strong> <span class="status status-valid">valid</span><ul><li><span class="status status-pass">pass</span> locked_dataset</li><li><span class="status status-pass">pass</span> locked_horizon</li><li><span class="status status-pass">pass</span> locked_metric</li><li><span class="status status-pass">pass</span> seed_recorded</li><li><span class="status status-pass">pass</span> budget_recorded</li><li><span class="status status-pass">pass</span> baseline_declared</li><li><span class="status status-pass">pass</span> chronological_split_policy</li><li><span class="status status-pass">pass</span> future_covariate_policy</li></ul></div>
+    </div>
+    <div>
+      <h2>Literature Evidence</h2>
+      <ol><li><strong>APT: Affine Prototype-Timestamp For Time Series Forecasting Under Distribution Shift</strong><p>Prototype or timestamp-conditioned affine structure motivates using known horizon context instead of only local instance statistics.</p></li>
+<li><strong>Reversible Instance Normalization for Accurate Time-Series Forecasting Against Distribution Shift</strong><p>Reversible normalization can help distribution shift, but its lookback-to-horizon statistic assumption must be tested.</p></li>
+<li><strong>A Time Series is Worth 64 Words: Long-term Forecasting with Transformers (PatchTST)</strong><p>Patch-based strong references prevent overstating a DLinear-only improvement.</p></li>
+<li><strong>An Analysis of Linear Time Series Forecasting Models</strong><p>Recent linear-model analysis suggests constraints, normalization, and simple residual structure may matter more than adding heavy backbones.</p></li>
+<li><strong>SIN: Selective and Interpretable Normalization for Long-Term Time Series Forecasting</strong><p>Selective normalization argues against one fixed statistic for every series and motivates gated lightweight adapters.</p></li></ol>
+    </div>
+  </section>
+</main>
+</body>
+</html>

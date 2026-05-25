@@ -28,7 +28,22 @@ def plan_experiment(workspace: Workspace, idea_id: str, backend: str = "smoke") 
         "success_criteria": "metric improves over baseline and post-taste paper potential >= 3",
         "kill_criteria": "no improvement and no surprising diagnostic signal",
         "changed_config_summary": f"Evaluate `{idea_id}` with `{backend}` backend.",
-        "config": {"backend": backend, "topic": idea.get("topic", "forecasting")},
+        "config": {
+            "backend": backend,
+            "topic": idea.get("topic", "forecasting"),
+            "model": "dlinear-mini" if backend == "dlinear-mini" else "smoke-candidate",
+            "data": "synthetic" if backend == "smoke" else "user_csv",
+            "seq_len": 12,
+            "label_len": 0,
+            "pred_len": 1,
+            "seed": 2021,
+            "train_epochs": 1,
+            "batch_size": 1,
+            "learning_rate": "not_applicable" if backend != "tsl-simple" else "0.001",
+            "patience": 1,
+            "timeout_sec": 60,
+            "split_policy": "chronological_split_from_backend",
+        },
     }
     queue = read_json(workspace.queue_json, default=[])
     queue = [item for item in queue if item.get("id") != plan["id"]] + [plan]

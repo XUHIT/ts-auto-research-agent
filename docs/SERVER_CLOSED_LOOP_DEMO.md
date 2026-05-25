@@ -2,31 +2,15 @@
 
 The main project demo is a single server-backed benchmark study. It uses the current A20CPolar server configuration, the local paper-note knowledge base, and the local Time-Series-Library_simple benchmark repository.
 
-This is not a collection of small examples. The demo is a rigorous ETTh1 benchmark loop with a locked baseline, a strong reference, an innovation candidate, and constrained review.
+This is not a collection of small examples. The demo is a rigorous ETTh1 benchmark loop with a locked baseline, a strong reference, an innovation candidate, schema validation, constrained review, and presentation artifacts.
 
 ## Command
 
 ```bash
 cd /home/xu/ts-auto-research-agent
 /home/xu/anaconda3/bin/python -m pip install -e .
-ts-agent demo full-research
-```
-
-The defaults expand to:
-
-```bash
-ts-agent demo full-research \
-  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
-  --literature-limit 1000 \
-  --topic forecasting \
-  --model DLinear \
-  --model PatchTST \
-  --model CalDLinear \
-  --data ETTh1.csv \
-  --seq-len 24 \
-  --pred-len 24 \
-  --subset-ratio 0.05 \
-  --train-epochs 3
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli multiagent run   --topic forecasting   --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes   --literature-limit 1000   --backend tsl-simple   --execute-demo
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli report
 ```
 
 ## Closed-Loop Stages
@@ -34,23 +18,25 @@ ts-agent demo full-research \
 1. Build a read-only literature index from the server paper notes.
 2. Extract method evidence for candidate design and risk control.
 3. Propose a taste-gated research idea.
-4. Build recoverable experiment plans with explicit method roles.
-5. Execute Time-Series-Library_simple runs on the RTX 3090 server.
-6. Parse RMSE and MAE from real benchmark output.
-7. Run post-result taste review.
-8. Produce constrained reviewer decisions.
-9. Update `research_state/leaderboard.csv` and `research_state/trajectory.jsonl`.
-10. Write `research_state/full_research_demo_report.md` and `research_state/showcase.md`.
+4. Register DLinear, PatchTST, candidates, and controls.
+5. Build recoverable experiment plans and per-run schemas.
+6. Validate dataset, horizon, metric, seed, baseline, budget, and leakage policy.
+7. Execute Time-Series-Library_simple runs on the server GPU.
+8. Parse RMSE and MAE from real benchmark output.
+9. Run post-result taste review.
+10. Produce constrained reviewer decisions.
+11. Update `research_state/leaderboard.csv` and `research_state/trajectory.jsonl`.
+12. Generate `research_cockpit.html`, dashboard, monitor, PDF report, and `demo_packet.json`.
 
 ## Latest Validated Result
 
 Validated on May 25, 2026 in `/home/xu/ts-auto-research-agent`:
 
-| Run | Role | Model | RMSE | MAE | Baseline | Delta | Decision |
-|---|---|---|---:|---:|---:|---:|---|
-| `run_0048` | `baseline_anchor` | `DLinear` | `0.59827763` | `0.38131171` | `0.59827763` | `0.0` | `continue` |
-| `run_0049` | `strong_reference` | `PatchTST` | `0.58627319` | `0.37807289` | `0.59827763` | `0.01200444` | `continue` |
-| `run_0050` | `innovation_candidate` | `CalDLinear` | `0.59605795` | `0.38774657` | `0.59827763` | `0.00221968` | `continue` |
+| Run | Role | Model | RMSE | MAE | Baseline | Delta | Schema | Decision |
+|---|---|---|---:|---:|---:|---:|---|---|
+| `run_0051` | `baseline_anchor` | `DLinear` | `0.59827763` | `0.38131171` | `0.59827763` | `0.0` | `valid` | `continue` |
+| `run_0052` | `strong_reference` | `PatchTST` | `0.58627319` | `0.37807289` | `0.59827763` | `0.01200444` | `valid` | `continue` |
+| `run_0053` | `innovation_candidate` | `CalDLinear` | `0.59605795` | `0.38774657` | `0.59827763` | `0.00221968` | `valid` | `continue` |
 
 ## Interpretation
 
@@ -60,29 +46,16 @@ Validated on May 25, 2026 in `/home/xu/ts-auto-research-agent`:
 
 ```text
 research_state/full_research_demo_report.md
+research_state/multiagent_trace.md
 research_state/showcase.md
 research_state/leaderboard.csv
 research_state/trajectory.jsonl
-runs/run_0048/
-runs/run_0049/
-runs/run_0050/
-```
-
-
-## Visual Report
-
-Generate the final presentation artifacts with:
-
-```bash
-ts-agent report
-```
-
-Outputs:
-
-```text
+research_state/demo_packet.json
+runs/run_0051/
+runs/run_0052/
+runs/run_0053/
+docs/demo_results/research_cockpit.html
 docs/demo_results/dashboard.html
 docs/demo_results/monitor.html
 docs/demo_results/benchmark_report.pdf
-docs/demo_results/figures/benchmark_metrics.svg
-docs/demo_results/figures/delta_vs_dlinear.svg
 ```

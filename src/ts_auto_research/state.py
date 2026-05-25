@@ -40,6 +40,8 @@ def init_workspace(workspace: Workspace, force: bool = False) -> dict[str, Any]:
         (workspace.taste_json, []),
         (workspace.queue_json, []),
         (workspace.claims_json, []),
+        (workspace.baseline_registry_json, {"schema_version": 1, "baseline_anchor": "DLinear", "models": []}),
+        (workspace.demo_packet_json, {"schema_version": 1, "status": "not_generated"}),
         (workspace.assets_json, {"schema_version": 1, "roots": [], "count": 0, "kind_counts": {}, "assets": []}),
         (workspace.scope_json, {"schema_version": 1, "name": "default", "asset_ids": [], "note": ""}),
     ]:
@@ -50,6 +52,7 @@ def init_workspace(workspace: Workspace, force: bool = False) -> dict[str, Any]:
         (workspace.taste_yaml, []),
         (workspace.queue_yaml, []),
         (workspace.claims_yaml, []),
+        (workspace.baseline_registry_yaml, {"schema_version": 1, "baseline_anchor": "DLinear", "models": []}),
         (workspace.assets_yaml, {"schema_version": 1, "roots": [], "count": 0, "kind_counts": {}, "assets": []}),
         (workspace.scope_yaml, {"schema_version": 1, "name": "default", "asset_ids": [], "note": ""}),
     ]:

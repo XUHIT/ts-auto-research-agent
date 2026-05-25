@@ -16,6 +16,7 @@ from .io_utils import read_json, write_json
 from .literature import build_index, read_index
 from .methods import default_full_research_models
 from .paths import Workspace
+from .protocol import build_role_lanes, write_baseline_registry
 from .scope import get_scope, scoped_assets
 from .state import init_workspace, utc_now
 from .taste import get_pre_taste, review_idea
@@ -74,6 +75,13 @@ AGENT_SPECS: tuple[AgentSpec, ...] = (
         outputs=("experiment_scope.json", "assets.json"),
     ),
     AgentSpec(
+        agent_id="code_engineer",
+        role="Code Engineer",
+        responsibility="Map the selected hypothesis to model registry entries, schema checks, and a concrete code-change boundary.",
+        tools=("protocol.schema", "methods.registry"),
+        outputs=("experiment_schema.json", "schema_validation.json", "baseline_registry.json"),
+    ),
+    AgentSpec(
         agent_id="experiment_planner",
         role="Experiment Planner",
         responsibility="Translate the accepted idea into a bounded, reproducible experiment command.",
@@ -100,6 +108,13 @@ AGENT_SPECS: tuple[AgentSpec, ...] = (
         responsibility="Turn the trace into the next concrete research move and demo narrative.",
         tools=("multiagent.trace",),
         outputs=("multiagent_trace.md",),
+    ),
+    AgentSpec(
+        agent_id="reporter_agent",
+        role="Reporter",
+        responsibility="Publish a demo packet with cockpit, dashboard, monitor, PDF, leaderboard, and trace artifacts.",
+        tools=("report.generate", "showcase.build"),
+        outputs=("research_cockpit.html", "dashboard.html", "benchmark_report.pdf", "demo_packet.json"),
     ),
 )
 
@@ -327,6 +342,22 @@ def run_research_crew(
         )
     )
 
+    registry = write_baseline_registry(workspace, literature_records)
+    task_results.append(
+        _result(
+            "code_engineer",
+            "completed",
+            f"Registered DLinear as anchor, {len(registry['strong_references'])} strong references, and {len(registry['innovation_candidates'])} candidate methods before execution.",
+            artifacts=[_artifact(workspace.baseline_registry_json)],
+            next_actions=["Validate each run against the experiment schema before trusting metrics."],
+            data={
+                "baseline_anchor": registry["baseline_anchor"],
+                "strong_references": registry["strong_references"],
+                "innovation_candidates": registry["innovation_candidates"],
+            },
+        )
+    )
+
     command = _execution_command(
         backend=backend,
         paper_source=paper_source,
@@ -466,7 +497,23 @@ def run_research_crew(
             data={"next_research_move": synthesis_next},
         )
     )
+    task_results.append(
+        _result(
+            "reporter_agent",
+            "completed",
+            "Prepared the demo packet boundary: cockpit, dashboard, monitor, PDF report, leaderboard, and trace.",
+            artifacts=[
+                _artifact(workspace.research_cockpit_html),
+                _artifact(workspace.root / "docs" / "demo_results" / "dashboard.html"),
+                _artifact(workspace.root / "docs" / "demo_results" / "benchmark_report.pdf"),
+                _artifact(workspace.demo_packet_json),
+            ],
+            next_actions=["Run `ts-agent report` after benchmark execution to refresh all visual artifacts."],
+            data={"demo_packet": _artifact(workspace.demo_packet_json)},
+        )
+    )
 
+    task_dicts = [asdict(result) for result in task_results]
     trace = {
         "schema_version": 1,
         "run_id": run_id,
@@ -475,7 +522,8 @@ def run_research_crew(
         "topic": topic,
         "selected_idea_id": selected_idea["id"],
         "agent_specs": [asdict(spec) for spec in AGENT_SPECS],
-        "tasks": [asdict(result) for result in task_results],
+        "role_lanes": build_role_lanes(task_dicts),
+        "tasks": task_dicts,
         "execution_plan": execution_plan,
         "artifacts": {
             "trace_json": _artifact(workspace.multiagent_trace_json),
@@ -506,6 +554,10 @@ def render_multiagent_trace(trace: dict[str, Any]) -> str:
     ]
     for spec in trace.get("agent_specs", []):
         lines.append(f"- `{spec.get('agent_id')}`: {spec.get('role')} - {spec.get('responsibility')}")
+
+    lines.extend(["", "## Five Role Lanes"])
+    for lane in trace.get("role_lanes", []):
+        lines.append(f"- `{lane.get('display_name')}`: `{lane.get('status')}` - {lane.get('mission')}")
 
     lines.extend(["", "## Timeline"])
     for index, task in enumerate(trace.get("tasks", []), start=1):

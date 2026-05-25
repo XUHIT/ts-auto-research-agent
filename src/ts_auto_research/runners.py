@@ -286,6 +286,7 @@ def run_tsl_simple_backend(run_id: str, plan: dict[str, Any]) -> tuple[dict[str,
     dec_in = int(config.get("dec_in", enc_in))
     c_out = int(config.get("c_out", enc_in))
     train_epochs = int(config.get("train_epochs", 1))
+    seed = int(config.get("seed", 2021))
     batch_size = int(config.get("batch_size", 16))
     subset_ratio = float(config.get("subset_ratio", 0.05))
     timeout_sec = int(config.get("timeout_sec", 240))
@@ -324,6 +325,8 @@ def run_tsl_simple_backend(run_id: str, plan: dict[str, Any]) -> tuple[dict[str,
         str(config.get("d_ff", 64)),
         "--train_epochs",
         str(train_epochs),
+        "--seed",
+        str(seed),
         "--itr",
         str(config.get("itr", 1)),
         "--batch_size",
@@ -406,6 +409,7 @@ def run_tsl_simple_backend(run_id: str, plan: dict[str, Any]) -> tuple[dict[str,
             "label_len": label_len,
             "pred_len": pred_len,
             "train_epochs": train_epochs,
+            "seed": seed,
             "subset_ratio": subset_ratio,
         },
     }

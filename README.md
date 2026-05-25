@@ -15,13 +15,17 @@ Result: CalDLinear improves RMSE over DLinear by 0.00221968, but PatchTST remain
 Conclusion: bounded positive candidate, not a SOTA claim yet.
 ```
 
-Run the one-screen benchmark interaction:
+Run the main server-backed research interaction:
 
 ```bash
 cd /home/xu/ts-auto-research-agent
-ts-agent demo full-research
-ts-agent showcase
-ts-agent report
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli multiagent run \
+  --topic forecasting \
+  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
+  --literature-limit 1000 \
+  --backend tsl-simple \
+  --execute-demo
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli report
 ```
 
 ## What Counts As The Demo
@@ -32,7 +36,8 @@ The project demo is the server-backed benchmark study above. It must include:
 - DLinear as the baseline anchor.
 - A strong reference arm, currently PatchTST, so the system cannot overclaim against DLinear only.
 - A literature-grounded innovation candidate, currently CalDLinear.
-- Pre-run taste review, experiment protocol files, metrics, post-run review, leaderboard, and trajectory.
+- Planner, Engineer, Executor, Evaluator, and Reporter lanes in the orchestration trace and cockpit.
+- Pre-run taste review, experiment protocol files, schema validation, metrics, post-run review, leaderboard, and trajectory.
 - A bounded interpretation that states what the candidate proves and what it does not prove.
 
 `ts-agent demo public-mini` is only a smoke check for the loop mechanics. It is not the project delivery demo.
@@ -44,9 +49,13 @@ The primary delivery target is the A20CPolar server, not an arbitrary clean mach
 ```bash
 cd /home/xu/ts-auto-research-agent
 /home/xu/anaconda3/bin/python -m pip install -e .
-ts-agent demo full-research
-ts-agent showcase
-ts-agent report
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli multiagent run \
+  --topic forecasting \
+  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
+  --literature-limit 1000 \
+  --backend tsl-simple \
+  --execute-demo
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli report
 ```
 
 Default server inputs:
@@ -65,9 +74,9 @@ Default server inputs:
 - `ts-agent vibe propose`: generate research-direction ideas from topic and literature context.
 - `ts-agent taste review`: score an idea before experiment planning.
 - `ts-agent demo full-research`: run the server benchmark study.
+- `ts-agent multiagent run/show`: run and inspect the Planner/Engineer/Executor/Evaluator/Reporter orchestration trace.
 - `ts-agent showcase`: print a one-screen benchmark effect, novelty, usefulness, and next action.
-- `ts-agent report`: generate the static dashboard, monitor page, SVG figures, and PDF report.
-- `ts-agent multiagent run/show`: run and inspect the role-based orchestration trace.
+- `ts-agent report`: generate the research cockpit, dashboard, monitor page, SVG figures, PDF report, and demo packet.
 - `ts-agent leaderboard`: print the experiment leaderboard.
 - `ts-agent demo public-mini`: run a bundled smoke check only.
 
@@ -82,14 +91,16 @@ ts-agent report
 Outputs:
 
 ```text
+docs/demo_results/research_cockpit.html
 docs/demo_results/dashboard.html
 docs/demo_results/monitor.html
 docs/demo_results/benchmark_report.pdf
 docs/demo_results/figures/benchmark_metrics.svg
 docs/demo_results/figures/delta_vs_dlinear.svg
+docs/demo_results/demo_packet.json
 ```
 
-`dashboard.html` is the first-screen visual result. `monitor.html` is the refreshable monitoring snapshot. `benchmark_report.pdf` is the formal report for review or presentation.
+`research_cockpit.html` is the main presentation surface: it shows multi-agent lanes, literature evidence, schema checks, metrics, decisions, and claim strength. `dashboard.html` is the compact metric view. `monitor.html` is the refreshable monitoring snapshot. `benchmark_report.pdf` is the formal report for review or presentation.
 
 ## Runtime Protocol
 
@@ -100,6 +111,9 @@ runs/run_XXXX/
   vibe_idea.yaml
   taste_pre.yaml
   experiment_plan.yaml
+  experiment_schema.json
+  schema_validation.json
+  protocol_audit.md
   command.sh
   stdout.log
   stderr.log
@@ -117,6 +131,8 @@ research_state/trajectory.jsonl
 research_state/vibe_ideas.yaml
 research_state/taste_reviews.yaml
 research_state/multiagent_trace.json
+research_state/baseline_registry.json
+docs/demo_results/demo_packet.json
 research_state/showcase.md
 ```
 
@@ -137,10 +153,9 @@ Acceptance rule:
 ```bash
 /home/xu/anaconda3/bin/python -m compileall src tests
 /home/xu/anaconda3/bin/python -m unittest discover -s tests -v
-ts-agent demo full-research
-ts-agent showcase
-ts-agent report
-ts-agent report
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli multiagent run --topic forecasting --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes --literature-limit 1000 --backend tsl-simple --execute-demo
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli showcase
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli report
 ```
 
 ## Design Docs

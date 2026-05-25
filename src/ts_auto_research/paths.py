@@ -75,6 +75,14 @@ class Workspace:
         return self.research_state / "multiagent_trace.md"
 
     @property
+    def baseline_registry_json(self) -> Path:
+        return self.research_state / "baseline_registry.json"
+
+    @property
+    def baseline_registry_yaml(self) -> Path:
+        return self.research_state / "baseline_registry.yaml"
+
+    @property
     def showcase_json(self) -> Path:
         return self.research_state / "showcase.json"
 
@@ -113,6 +121,14 @@ class Workspace:
     @property
     def claims_json(self) -> Path:
         return self.research_state / "claims.json"
+
+    @property
+    def demo_packet_json(self) -> Path:
+        return self.research_state / "demo_packet.json"
+
+    @property
+    def research_cockpit_html(self) -> Path:
+        return self.root / "docs" / "demo_results" / "research_cockpit.html"
 
     def run_dir(self, run_id: str) -> Path:
         return self.runs / run_id

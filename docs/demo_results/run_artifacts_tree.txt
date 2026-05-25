@@ -1,13 +1,19 @@
 research_state/
   full_research_demo_report.md
+  multiagent_trace.md
+  baseline_registry.json
+  demo_packet.json
   showcase.md
   leaderboard.csv
   trajectory.jsonl
 runs/
-  run_0048/
+  run_0051/
     vibe_idea.yaml
     taste_pre.yaml
     experiment_plan.yaml
+    experiment_schema.json
+    schema_validation.json
+    protocol_audit.md
     command.sh
     stdout.log
     stderr.log
@@ -15,10 +21,13 @@ runs/
     taste_post.yaml
     review.md
     review.json
-  run_0049/
+  run_0052/
     vibe_idea.yaml
     taste_pre.yaml
     experiment_plan.yaml
+    experiment_schema.json
+    schema_validation.json
+    protocol_audit.md
     command.sh
     stdout.log
     stderr.log
@@ -26,10 +35,13 @@ runs/
     taste_post.yaml
     review.md
     review.json
-  run_0050/
+  run_0053/
     vibe_idea.yaml
     taste_pre.yaml
     experiment_plan.yaml
+    experiment_schema.json
+    schema_validation.json
+    protocol_audit.md
     command.sh
     stdout.log
     stderr.log

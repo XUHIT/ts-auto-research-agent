@@ -9,10 +9,11 @@ from pathlib import Path
 import textwrap
 from typing import Any
 
-from .io_utils import ensure_dir, read_json
+from .io_utils import ensure_dir, read_json, write_json
 from .literature import read_index
 from .methods import INNOVATION_CANDIDATE, STRONG_REFERENCE, select_literature_evidence
 from .paths import Workspace
+from .protocol import build_role_lanes
 from .showcase import build_showcase
 
 ROLE_COLORS = {
@@ -28,9 +29,11 @@ ROLE_COLORS = {
 class ReportArtifacts:
     dashboard_html: Path
     monitor_html: Path
+    research_cockpit_html: Path
     pdf_report: Path
     metrics_svg: Path
     delta_svg: Path
+    demo_packet_json: Path
 
 
 def generate_report(workspace: Workspace, output_dir: Path | None = None) -> dict[str, str]:
@@ -43,6 +46,9 @@ def generate_report(workspace: Workspace, output_dir: Path | None = None) -> dic
     results = _enrich_results(workspace, showcase.get("results", []))
     evidence = _literature_evidence(workspace, results)
     summary = _summary(showcase, results)
+    trace = read_json(workspace.multiagent_trace_json, default={})
+    validations = _load_protocol_validations(workspace, results)
+    registry = read_json(workspace.baseline_registry_json, default={})
 
     metrics_svg = figures_dir / "benchmark_metrics.svg"
     delta_svg = figures_dir / "delta_vs_dlinear.svg"
@@ -51,7 +57,9 @@ def generate_report(workspace: Workspace, output_dir: Path | None = None) -> dic
 
     dashboard_html = output_dir / "dashboard.html"
     monitor_html = output_dir / "monitor.html"
+    research_cockpit_html = output_dir / "research_cockpit.html"
     pdf_report = output_dir / "benchmark_report.pdf"
+    demo_packet_json = output_dir / "demo_packet.json"
 
     dashboard_html.write_text(
         _render_dashboard_html(
@@ -79,14 +87,52 @@ def generate_report(workspace: Workspace, output_dir: Path | None = None) -> dic
         ),
         encoding="utf-8",
     )
+    research_cockpit_html.write_text(
+        _render_research_cockpit_html(
+            showcase=showcase,
+            results=results,
+            evidence=evidence,
+            summary=summary,
+            trace=trace,
+            validations=validations,
+            registry=registry,
+            metrics_svg="figures/benchmark_metrics.svg",
+            delta_svg="figures/delta_vs_dlinear.svg",
+        ),
+        encoding="utf-8",
+    )
     _write_pdf_report(pdf_report, showcase, results, evidence, summary)
+    demo_packet = _demo_packet(
+        workspace=workspace,
+        artifacts={
+            "dashboard_html": str(dashboard_html),
+            "monitor_html": str(monitor_html),
+            "research_cockpit_html": str(research_cockpit_html),
+            "pdf_report": str(pdf_report),
+            "metrics_svg": str(metrics_svg),
+            "delta_svg": str(delta_svg),
+            "demo_packet_json": str(demo_packet_json),
+            "state_demo_packet_json": str(workspace.demo_packet_json),
+        },
+        showcase=showcase,
+        results=results,
+        evidence=evidence,
+        summary=summary,
+        trace=trace,
+        validations=validations,
+        registry=registry,
+    )
+    write_json(workspace.demo_packet_json, demo_packet)
+    write_json(demo_packet_json, demo_packet)
 
     artifacts = ReportArtifacts(
         dashboard_html=dashboard_html,
         monitor_html=monitor_html,
+        research_cockpit_html=research_cockpit_html,
         pdf_report=pdf_report,
         metrics_svg=metrics_svg,
         delta_svg=delta_svg,
+        demo_packet_json=demo_packet_json,
     )
     return {key: str(value) for key, value in artifacts.__dict__.items()}
 
@@ -258,6 +304,213 @@ def _svg_header(width: int, height: int) -> str:
 .axis{{font:400 11px Arial,Helvetica,sans-serif;fill:#4A5568}}
 .value{{font:600 11px Arial,Helvetica,sans-serif;fill:#1A202C}}
 </style>'''
+
+
+def _load_protocol_validations(workspace: Workspace, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    validations: list[dict[str, Any]] = []
+    for item in results:
+        run_id = str(item.get("run_id") or "")
+        validation = read_json(workspace.run_dir(run_id) / "schema_validation.json", default={})
+        schema = read_json(workspace.run_dir(run_id) / "experiment_schema.json", default={})
+        if validation or schema:
+            validations.append({"run_id": run_id, "schema": schema, "validation": validation})
+    return validations
+
+
+def _claim_strength(summary: dict[str, Any], validations: list[dict[str, Any]]) -> dict[str, Any]:
+    score = 0
+    reasons: list[str] = []
+    candidate = summary.get("candidate") or {}
+    strong = summary.get("strong_reference") or {}
+    if candidate and _to_float(candidate.get("delta")) is not None and float(candidate.get("delta")) > 0:
+        score += 35
+        reasons.append("candidate clears the DLinear anchor")
+    if strong and candidate and _to_float(strong.get("metric_value")) is not None and _to_float(candidate.get("metric_value")) is not None:
+        if float(candidate["metric_value"]) <= float(strong["metric_value"]):
+            score += 35
+            reasons.append("candidate matches or beats the strong reference")
+        else:
+            score += 10
+            reasons.append("strong reference still wins, so the claim remains bounded")
+    valid_count = sum(1 for item in validations if item.get("validation", {}).get("status") in {"valid", "warning"})
+    if valid_count:
+        score += min(20, valid_count * 7)
+        reasons.append("schema and leakage checks are recorded")
+    if summary.get("next_action"):
+        score += 10
+        reasons.append("next research move is explicit")
+    label = "paper-claim ready" if score >= 80 else "demo-ready bounded claim" if score >= 55 else "needs stronger evidence"
+    return {"score": min(score, 100), "label": label, "reasons": reasons}
+
+
+def _demo_packet(
+    workspace: Workspace,
+    artifacts: dict[str, str],
+    showcase: dict[str, Any],
+    results: list[dict[str, Any]],
+    evidence: list[dict[str, str]],
+    summary: dict[str, Any],
+    trace: dict[str, Any],
+    validations: list[dict[str, Any]],
+    registry: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "schema_version": 1,
+        "generated_at": summary.get("generated_at"),
+        "status": "generated",
+        "summary": summary,
+        "claim_strength": _claim_strength(summary, validations),
+        "showcase": showcase,
+        "results": results,
+        "literature_evidence": evidence,
+        "role_lanes": trace.get("role_lanes") or build_role_lanes(trace.get("tasks", [])),
+        "validations": validations,
+        "baseline_registry": registry,
+        "artifacts": artifacts,
+    }
+
+
+def _render_research_cockpit_html(
+    showcase: dict[str, Any],
+    results: list[dict[str, Any]],
+    evidence: list[dict[str, str]],
+    summary: dict[str, Any],
+    trace: dict[str, Any],
+    validations: list[dict[str, Any]],
+    registry: dict[str, Any],
+    metrics_svg: str,
+    delta_svg: str,
+) -> str:
+    lanes = trace.get("role_lanes") or build_role_lanes(trace.get("tasks", []))
+    claim = _claim_strength(summary, validations)
+    rows = "\n".join(_html_result_row(item) for item in results)
+    lane_cards = "\n".join(_html_lane_card(lane) for lane in lanes)
+    validation_cards = "\n".join(_html_validation_card(item) for item in validations) or "<p>No schema validation artifacts were found for the selected rows.</p>"
+    evidence_items = "\n".join(
+        f"<li><strong>{escape(item.get('title', 'untitled'))}</strong><p>{escape(item.get('lesson', ''))}</p></li>"
+        for item in evidence[:6]
+    )
+    registry_text = escape(
+        f"anchor={registry.get('baseline_anchor', 'DLinear')} strong={', '.join(registry.get('strong_references', []))} candidates={', '.join(registry.get('innovation_candidates', []))}"
+    )
+    return f'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TS Auto Research Agent Cockpit</title>
+  <style>
+    :root {{ --ink:#172033; --muted:#526071; --line:#d8e0ea; --panel:#f7f9fc; --good:#1f7a4d; --warn:#b45309; --accent:#c2410c; }}
+    body {{ margin:0; font-family: Inter, Arial, Helvetica, sans-serif; color:var(--ink); background:#ffffff; }}
+    main {{ max-width:1240px; margin:0 auto; padding:26px 22px 48px; }}
+    h1 {{ font-size:31px; line-height:1.12; margin:0 0 8px; letter-spacing:0; }}
+    h2 {{ font-size:18px; margin:26px 0 12px; }}
+    p {{ color:var(--muted); line-height:1.52; }}
+    .top {{ display:grid; grid-template-columns:1.35fr .65fr; gap:18px; align-items:stretch; border-bottom:1px solid var(--line); padding-bottom:18px; }}
+    .claim {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
+    .score {{ border-radius:8px; background:var(--panel); padding:16px; border:1px solid var(--line); }}
+    .score-number {{ font-size:42px; font-weight:800; color:var(--accent); }}
+    .bar {{ height:10px; background:#e5eaf1; border-radius:999px; overflow:hidden; margin:8px 0 10px; }}
+    .bar span {{ display:block; height:100%; background:var(--accent); width:{claim['score']}%; }}
+    .lanes {{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }}
+    .lane, .panel {{ border:1px solid var(--line); border-radius:8px; padding:12px; background:#fff; }}
+    .lane strong {{ display:block; margin-bottom:5px; }}
+    .status {{ display:inline-block; border-radius:999px; padding:3px 8px; font-size:12px; font-weight:700; background:#edf2f7; color:#2d3748; }}
+    .status-completed, .status-valid, .status-pass {{ background:#ecfdf3; color:var(--good); }}
+    .status-warning, .status-attention_required {{ background:#fff7ed; color:var(--warn); }}
+    .status-invalid, .status-fail {{ background:#fef2f2; color:#b91c1c; }}
+    .badge {{ display:inline-block; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; background:#edf2f7; }}
+    .role-baseline_anchor {{ background:#edf2f7; color:#2d3748; }}
+    .role-strong_reference {{ background:#ebf8ff; color:#2b6cb0; }}
+    .role-innovation_candidate {{ background:#fff7ed; color:#c05621; }}
+    .flow {{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }}
+    .flow .panel {{ min-height:128px; }}
+    .charts {{ display:grid; grid-template-columns:1fr; gap:16px; }}
+    .chart {{ border:1px solid var(--line); border-radius:8px; padding:10px; overflow:auto; }}
+    .chart img {{ max-width:100%; display:block; }}
+    table {{ width:100%; border-collapse:collapse; font-size:14px; }}
+    th, td {{ border-bottom:1px solid var(--line); padding:9px 8px; text-align:left; vertical-align:top; }}
+    th {{ background:var(--panel); }}
+    code {{ background:#f1f5f9; border-radius:4px; padding:1px 4px; }}
+    .two {{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }}
+    ul {{ padding-left:20px; }}
+    @media (max-width: 900px) {{ .top, .two, .flow, .lanes {{ grid-template-columns:1fr; }} }}
+  </style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div>
+      <h1>Single-Benchmark Research Cockpit</h1>
+      <p>{escape(str(summary.get('effect', '')))}</p>
+      <div class="claim"><strong>Current claim:</strong> {escape(str(summary.get('claim', '')))}</div>
+    </div>
+    <div class="score">
+      <div class="score-number">{claim['score']}</div>
+      <div class="bar"><span></span></div>
+      <strong>{escape(claim['label'])}</strong>
+      <p>{escape('; '.join(claim['reasons']) or 'No claim evidence yet.')}</p>
+    </div>
+  </section>
+
+  <h2>Multi-Agent Orchestration</h2>
+  <section class="lanes">{lane_cards}</section>
+
+  <h2>Research Flow</h2>
+  <section class="flow">
+    <div class="panel"><strong>Literature</strong><p>{len(evidence)} selected signals from the time-series paper library.</p></div>
+    <div class="panel"><strong>Idea and Taste</strong><p>{escape(str(trace.get('selected_idea_id') or 'latest selected idea'))} is gated before budget allocation.</p></div>
+    <div class="panel"><strong>Method</strong><p>{registry_text}</p></div>
+    <div class="panel"><strong>Execution</strong><p>Locked dataset, horizon, metric, seed, and command are stored per run.</p></div>
+    <div class="panel"><strong>Decision</strong><p>{escape(str(summary.get('next_action', '')))}</p></div>
+  </section>
+
+  <h2>Metrics</h2>
+  <section class="charts">
+    <div class="chart"><img src="{escape(metrics_svg)}" alt="RMSE and MAE by method"></div>
+    <div class="chart"><img src="{escape(delta_svg)}" alt="Delta vs DLinear baseline"></div>
+  </section>
+
+  <h2>Benchmark Rows</h2>
+  <table><thead><tr><th>Run</th><th>Role</th><th>Model</th><th>RMSE</th><th>MAE</th><th>Delta</th><th>Decision</th></tr></thead><tbody>{rows}</tbody></table>
+
+  <section class="two">
+    <div>
+      <h2>Protocol Validation</h2>
+      {validation_cards}
+    </div>
+    <div>
+      <h2>Literature Evidence</h2>
+      <ol>{evidence_items}</ol>
+    </div>
+  </section>
+</main>
+</body>
+</html>
+'''
+
+
+def _html_lane_card(lane: dict[str, Any]) -> str:
+    status = str(lane.get("status", "unknown"))
+    owns = ", ".join(str(item) for item in lane.get("owns", []))
+    return (
+        f'<div class="lane"><strong>{escape(str(lane.get("display_name", "Role")))}</strong>'
+        f'<span class="status status-{escape(status)}">{escape(status)}</span>'
+        f'<p>{escape(str(lane.get("mission", "")))}</p>'
+        f'<p><small>{escape(owns)}</small></p></div>'
+    )
+
+
+def _html_validation_card(item: dict[str, Any]) -> str:
+    run_id = escape(str(item.get("run_id", "")))
+    validation = item.get("validation", {})
+    status = escape(str(validation.get("status", "unknown")))
+    checks = validation.get("fairness_checks", []) + validation.get("leakage_checks", [])
+    checks_html = "".join(
+        f'<li><span class="status status-{escape(str(check.get("status", "unknown")))}">{escape(str(check.get("status", "unknown")))}</span> {escape(str(check.get("name", "check")))}</li>'
+        for check in checks[:8]
+    )
+    return f'<div class="panel"><strong><code>{run_id}</code></strong> <span class="status status-{status}">{status}</span><ul>{checks_html}</ul></div>'
 
 
 def _render_dashboard_html(

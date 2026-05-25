@@ -1,6 +1,16 @@
 # Multi-Agent Orchestration
 
-The project includes a role-based orchestration layer for the full research loop. The first version is deterministic and dependency-free so it can be tested, versioned, and demonstrated without external services. Each role can later be replaced by an LLM-backed implementation while keeping the same artifacts and contracts.
+The project includes a deterministic, dependency-free multi-agent orchestration layer for the full research loop. It is intentionally explicit: each role writes recoverable artifacts today, and each role can later be replaced by an LLM-backed worker without changing the external contract.
+
+## Five Role Lanes
+
+| Lane | Purpose | Backing agents |
+|---|---|---|
+| Planner | Convert literature signals and taste constraints into bounded hypotheses. | `literature_curator`, `idea_scout`, `taste_reviewer`, `experiment_planner` |
+| Engineer | Bind hypotheses to model registry entries, schema checks, and code-change boundaries. | `scope_manager`, `code_engineer` |
+| Executor | Launch the selected backend and preserve commands, stdout, stderr, and metrics. | `experiment_runner` |
+| Evaluator | Check metrics, fairness, leakage risk, post-result taste, and reviewer decisions. | `result_reviewer` |
+| Reporter | Convert the trace into a cockpit, dashboard, PDF, and demo packet. | `synthesis_agent`, `reporter_agent` |
 
 ## Agent Roles
 
@@ -10,36 +20,20 @@ The project includes a role-based orchestration layer for the full research loop
 | `idea_scout` | Generate research-direction candidates from topic and literature context. | `vibe_ideas.json` |
 | `taste_reviewer` | Score whether an idea deserves benchmark time. | `taste_reviews.json` |
 | `scope_manager` | Bind the workflow to approved datasets, baselines, and execution adapters. | `experiment_scope.json`, `assets.json` |
+| `code_engineer` | Register baselines/candidates and enforce experiment-schema boundaries. | `baseline_registry.json`, per-run schema files |
 | `experiment_planner` | Produce a bounded experiment command and configuration. | `execution_plan` |
 | `experiment_runner` | Stage or execute the benchmark path while preserving run artifacts. | `runs/run_XXXX/`, `leaderboard.csv`, `trajectory.jsonl` |
 | `result_reviewer` | Convert metrics into constrained next-action decisions. | `review.md`, trajectory action |
 | `synthesis_agent` | Summarize the trace and select the next research move. | `multiagent_trace.md` |
+| `reporter_agent` | Define the public demo packet boundary. | `research_cockpit.html`, `benchmark_report.pdf`, `demo_packet.json` |
 
-## Command
+## Main Server Command
 
-Stage the complete orchestration without launching the real benchmark:
-
-```bash
-ts-agent multiagent run \
-  --topic forecasting \
-  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
-  --literature-limit 1000 \
-  --model DLinear \
-  --model PatchTST \
-  --model CalDLinear
-```
-
-Stage and execute the portable backend path:
+Execute the full server demo through the orchestration layer:
 
 ```bash
-ts-agent multiagent run \
-  --topic forecasting \
-  --paper-source examples/demo_paper_notes \
-  --backend dlinear-mini \
-  --budget 1 \
-  --data-csv examples/sample_series.csv \
-  --column value \
-  --execute-demo
+cd /home/xu/ts-auto-research-agent
+/home/xu/anaconda3/bin/python -m ts_auto_research.cli multiagent run   --topic forecasting   --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes   --literature-limit 1000   --backend tsl-simple   --execute-demo
 ```
 
 Inspect the latest orchestration trace:
@@ -48,16 +42,10 @@ Inspect the latest orchestration trace:
 ts-agent multiagent show
 ```
 
-Execute the real full-research demo through the runner role:
+Refresh the cockpit and report artifacts:
 
 ```bash
-ts-agent multiagent run \
-  --topic forecasting \
-  --paper-source /home/xu/autoresearch-agent/knowledge-base/paper-notes \
-  --model DLinear \
-  --model PatchTST \
-  --model CalDLinear \
-  --execute-demo
+ts-agent report
 ```
 
 ## Trace Artifacts
@@ -69,39 +57,11 @@ research_state/multiagent_trace.json
 research_state/multiagent_trace.md
 ```
 
-The JSON trace contains:
-
-- Agent specifications.
-- Ordered task results.
-- Status for each role.
-- Artifact paths.
-- Next actions.
-- The staged or executed benchmark command.
-
-The Markdown trace is a public-readable recovery summary for demos and reviews.
+The JSON trace contains agent specifications, five role lanes, ordered task results, artifact paths, next actions, and the staged or executed benchmark command.
 
 ## Execution Modes
 
 - `dry-run`: builds literature context, proposes ideas, runs the taste gate, checks scope, prepares the experiment plan, and records the runner as ready.
 - `execute-demo`: runs the same orchestration, then launches the real `full-research` benchmark study through the runner role.
 
-The default is `dry-run` because multi-agent planning should be inspectable before spending benchmark time.
-
-## Extension Path
-
-The orchestration module exposes a stable role boundary:
-
-```python
-from ts_auto_research.multiagent import run_research_crew
-```
-
-Future upgrades can replace a deterministic role with an LLM-backed worker as long as the worker returns the same task result shape:
-
-- `agent_id`
-- `status`
-- `summary`
-- `artifacts`
-- `next_actions`
-- `data`
-
-This keeps the public protocol stable while allowing stronger reasoning, tool calling, memory, and delegation inside each role.
+The default is `dry-run` because planning should be inspectable before spending benchmark time.
