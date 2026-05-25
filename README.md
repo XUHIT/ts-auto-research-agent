@@ -16,6 +16,7 @@ The system is designed as a clean-room time-series research loop: ideas are prop
 cd /home/xu/ts-auto-research-agent
 /home/xu/anaconda3/bin/python -m pip install -e .
 ts-agent init
+ts-agent demo public-mini
 ts-agent literature build-index --source /home/xu/autoresearch-agent/knowledge-base/paper-notes --limit 50
 ts-agent assets scan --scan-root /path/to/time-series-assets --max-depth 4
 ts-agent scope set --name general-ts-two-libs --asset-id <baseline_repo_id> --asset-id <baseline_repo_id>
@@ -50,6 +51,7 @@ find runs -maxdepth 2 -type f | sort
 - `ts-agent loop`: run the autonomous inner loop for a fixed budget.
 - `ts-agent leaderboard`: print the experiment leaderboard.
 - `ts-agent multiagent run/show`: run and inspect the role-based orchestration trace.
+- `ts-agent demo public-mini`: run the complete clone-local demo with bundled notes and CSV data.
 - `ts-agent demo tsl-simple`: run a small real Time-Series-Library_simple comparison demo.
 - `ts-agent demo full-research`: run the full literature-to-experiment research agent demo.
 
@@ -99,7 +101,19 @@ research_state/multiagent_trace.md
 - `docs/PROTOCOL.md`: experiment protocol, taste gates, and reviewer outputs.
 - `docs/ASSET_INTEGRATION.md`: how server-side papers, data, baselines, checkpoints, and environments enter the agent without being copied into the repo.
 - `docs/MULTI_AGENT_ORCHESTRATION.md`: role-based agent orchestration, trace files, and extension path.
-- `IMPLEMENTATION_REPORT.md`: implemented scope, validation results, and current GitHub publication blocker.
+- `docs/PUBLIC_DEMO.md`: one-command portable demo for first-time users.
+- `IMPLEMENTATION_REPORT.md`: delivered scope, validation commands, and remaining product work.
+
+## Public Mini Demo
+
+For a fresh clone without private server paths, run:
+
+```bash
+python -m pip install -e .
+ts-agent demo public-mini
+```
+
+This generates `research_state/public_mini_demo_report.md`, `research_state/multiagent_trace.md`, a leaderboard row, and a recoverable `runs/run_XXXX/` protocol directory using only `examples/demo_paper_notes/` and `examples/sample_series.csv`.
 
 ## Presentation Demo
 
@@ -143,3 +157,7 @@ The completed full research demo result is included for public review:
 - `docs/demo_results/run_artifacts_tree.txt`: generated runtime artifact layout.
 
 These files summarize the final demo effect without committing local runtime paths, private data, or raw run logs.
+
+## License
+
+MIT.

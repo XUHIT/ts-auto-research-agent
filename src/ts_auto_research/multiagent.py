@@ -83,7 +83,7 @@ AGENT_SPECS: tuple[AgentSpec, ...] = (
         agent_id="experiment_runner",
         role="Experiment Runner",
         responsibility="Execute or stage the planned benchmark while preserving run artifacts and logs.",
-        tools=("backend.tsl-simple", "backend.smoke"),
+        tools=("backend.tsl-simple", "backend.dlinear-mini", "backend.smoke"),
         outputs=("runs/run_XXXX", "leaderboard.csv", "trajectory.jsonl"),
     ),
     AgentSpec(
@@ -143,41 +143,57 @@ def _artifact(path: Path) -> str:
     return str(path)
 
 
-def _full_demo_command(
+def _quote_command(parts: list[str | int | float]) -> str:
+    return " ".join(shlex.quote(str(part)) for part in parts)
+
+
+def _execution_command(
+    backend: str,
     paper_source: Path | None,
     topic: str,
     models: list[str],
     data: str,
+    data_csv: str | None,
+    column: str | None,
     seq_len: int,
     pred_len: int,
     subset_ratio: float,
     train_epochs: int,
     literature_limit: int,
+    budget: int,
 ) -> str:
-    parts: list[str | int | float] = [
-        "ts-agent",
-        "demo",
-        "full-research",
-        "--topic",
-        topic,
-        "--literature-limit",
-        literature_limit,
-        "--data",
-        data,
-        "--seq-len",
-        seq_len,
-        "--pred-len",
-        pred_len,
-        "--subset-ratio",
-        subset_ratio,
-        "--train-epochs",
-        train_epochs,
-    ]
-    if paper_source is not None:
-        parts.extend(["--paper-source", str(paper_source)])
-    for model in models:
-        parts.extend(["--model", model])
-    return " ".join(shlex.quote(str(part)) for part in parts)
+    if backend == "tsl-simple":
+        parts: list[str | int | float] = [
+            "ts-agent",
+            "demo",
+            "full-research",
+            "--topic",
+            topic,
+            "--literature-limit",
+            literature_limit,
+            "--data",
+            data,
+            "--seq-len",
+            seq_len,
+            "--pred-len",
+            pred_len,
+            "--subset-ratio",
+            subset_ratio,
+            "--train-epochs",
+            train_epochs,
+        ]
+        if paper_source is not None:
+            parts.extend(["--paper-source", str(paper_source)])
+        for model in models:
+            parts.extend(["--model", model])
+        return _quote_command(parts)
+
+    parts = ["ts-agent", "loop", "--budget", budget, "--backend", backend, "--topic", topic]
+    if data_csv:
+        parts.extend(["--data-csv", data_csv])
+    if column:
+        parts.extend(["--column", column])
+    return _quote_command(parts)
 
 
 def _summarize_results(results: list[dict[str, Any]]) -> dict[str, Any]:
@@ -191,7 +207,8 @@ def _summarize_results(results: list[dict[str, Any]]) -> dict[str, Any]:
         value = metrics.get("metric_value")
         if value is None:
             continue
-        model = metrics.get("diagnostics", {}).get("model", "unknown")
+        diagnostics = metrics.get("diagnostics", {})
+        model = diagnostics.get("model") or metrics.get("backend", "unknown")
         candidate = {"model": model, "metric_value": float(value), "run_id": item.get("run", {}).get("run_id")}
         if best is None or candidate["metric_value"] < best["metric_value"]:
             best = candidate
@@ -205,17 +222,21 @@ def run_research_crew(
     literature_limit: int = 50,
     models: list[str] | None = None,
     data: str = "ETTh1.csv",
+    data_csv: str | None = None,
+    column: str | None = None,
     seq_len: int = 24,
     pred_len: int = 24,
     subset_ratio: float = 0.05,
     train_epochs: int = 1,
+    backend: str = "tsl-simple",
+    budget: int = 1,
     execute_demo: bool = False,
 ) -> dict[str, Any]:
     """Run the role-based orchestration protocol and write a trace.
 
     By default this stages the full research demo without executing expensive
-    benchmarks. Pass ``execute_demo=True`` to let the runner agent call the real
-    Time-Series-Library_simple demo backend.
+    benchmarks. Pass ``execute_demo=True`` to let the runner role execute the
+    selected backend and register run artifacts.
     """
     init_workspace(workspace)
     models = models or ["DLinear", "PatchTST", "MLP"]
@@ -279,13 +300,16 @@ def run_research_crew(
     scope = get_scope(workspace)
     assets = scoped_assets(workspace)
     tsl_assets = [asset for asset in assets if _contains_tsl_simple(asset)]
-    backend = "tsl-simple"
-    scope_status = "completed" if tsl_assets else "attention_required"
-    scope_summary = (
-        f"Active scope `{scope.get('name', 'default')}` contains {len(assets)} assets; Time-Series-Library_simple adapter is available."
-        if tsl_assets
-        else f"Active scope `{scope.get('name', 'default')}` contains {len(assets)} assets; staged plan assumes the `tsl-simple` adapter is configured before execution."
-    )
+    if backend == "tsl-simple":
+        scope_status = "completed" if tsl_assets else "attention_required"
+        scope_summary = (
+            f"Active scope `{scope.get('name', 'default')}` contains {len(assets)} assets; Time-Series-Library_simple adapter is available."
+            if tsl_assets
+            else f"Active scope `{scope.get('name', 'default')}` contains {len(assets)} assets; staged plan assumes the `tsl-simple` adapter is configured before execution."
+        )
+    else:
+        scope_status = "completed"
+        scope_summary = f"Backend `{backend}` uses bundled or user-provided inputs and does not require an external repository scope."
     task_results.append(
         _result(
             "scope_manager",
@@ -302,16 +326,20 @@ def run_research_crew(
         )
     )
 
-    command = _full_demo_command(
+    command = _execution_command(
+        backend=backend,
         paper_source=paper_source,
         topic=topic,
         models=models,
         data=data,
+        data_csv=data_csv,
+        column=column,
         seq_len=seq_len,
         pred_len=pred_len,
         subset_ratio=subset_ratio,
         train_epochs=train_epochs,
         literature_limit=literature_limit,
+        budget=budget,
     )
     execution_plan = {
         "backend": backend,
@@ -319,10 +347,13 @@ def run_research_crew(
         "idea_id": selected_idea["id"],
         "models": models,
         "data": data,
+        "data_csv": data_csv,
+        "column": column,
         "seq_len": seq_len,
         "pred_len": pred_len,
         "subset_ratio": subset_ratio,
         "train_epochs": train_epochs,
+        "budget": budget,
         "command": command,
         "execute_demo": execute_demo,
     }
@@ -330,7 +361,7 @@ def run_research_crew(
         _result(
             "experiment_planner",
             "completed",
-            f"Prepared a bounded `{backend}` plan for {len(models)} model runs on `{data}`.",
+            f"Prepared a bounded `{backend}` plan with budget `{budget}`.",
             artifacts=["execution_plan"],
             next_actions=["Run the staged command." if execute_demo else "Review the plan or rerun with --execute-demo."],
             data=execution_plan,
@@ -338,7 +369,7 @@ def run_research_crew(
     )
 
     demo_result: dict[str, Any] | None = None
-    if execute_demo:
+    if execute_demo and backend == "tsl-simple":
         from .demo import run_full_research_demo
 
         demo_result = run_full_research_demo(
@@ -353,13 +384,32 @@ def run_research_crew(
             train_epochs=train_epochs,
             literature_limit=literature_limit,
         )
+    elif execute_demo:
+        from .loop import run_loop_budget
+
+        demo_result = {
+            "results": run_loop_budget(
+                workspace,
+                budget=budget,
+                backend=backend,
+                topic=topic,
+                data_csv=data_csv,
+                column=column,
+            ),
+            "report_path": None,
+        }
+
+    if demo_result is not None:
         run_ids = [item["run"]["run_id"] for item in demo_result.get("results", [])]
+        artifacts = [str(workspace.run_dir(run_id)) for run_id in run_ids]
+        if demo_result.get("report_path"):
+            artifacts.append(str(demo_result["report_path"]))
         task_results.append(
             _result(
                 "experiment_runner",
                 "completed",
-                f"Executed the staged demo and produced {len(run_ids)} run directories.",
-                artifacts=[str(workspace.run_dir(run_id)) for run_id in run_ids] + [str(demo_result.get("report_path"))],
+                f"Executed the staged `{backend}` plan and produced {len(run_ids)} run directories.",
+                artifacts=artifacts,
                 next_actions=["Review metric trajectory and post-run decisions."],
                 data={"run_ids": run_ids, "report_path": demo_result.get("report_path")},
             )
@@ -369,7 +419,7 @@ def run_research_crew(
             _result(
                 "experiment_runner",
                 "ready",
-                "Execution was staged but not run; use --execute-demo to launch the real benchmark path.",
+                "Execution was staged but not run; use --execute-demo to launch the selected backend.",
                 artifacts=[_artifact(workspace.multiagent_trace_json), _artifact(workspace.multiagent_trace_md)],
                 next_actions=[command],
                 data={"dry_run": True, "command": command},
@@ -379,7 +429,7 @@ def run_research_crew(
     if demo_result:
         result_summary = _summarize_results(demo_result.get("results", []))
         best = result_summary.get("best")
-        best_text = f" Best model: `{best['model']}` with RMSE `{best['metric_value']}`." if best else ""
+        best_text = f" Best metric: `{best['model']}` with value `{best['metric_value']}`." if best else ""
         task_results.append(
             _result(
                 "result_reviewer",
@@ -402,9 +452,9 @@ def run_research_crew(
             )
         )
 
-    synthesis_next = "Execute the prepared full-research demo command and publish the resulting public-safe demo snapshot."
+    synthesis_next = "Execute the prepared demo command and publish the resulting public-safe demo snapshot."
     if demo_result:
-        synthesis_next = "Use the reviewed leaderboard to select the next bounded TSL-simple experiment branch."
+        synthesis_next = f"Use the reviewed leaderboard to select the next bounded `{backend}` experiment branch."
     task_results.append(
         _result(
             "synthesis_agent",
@@ -476,13 +526,15 @@ def render_multiagent_trace(trace: dict[str, Any]) -> str:
             f"- Backend: `{plan.get('backend')}`",
             f"- Models: `{', '.join(plan.get('models', []))}`",
             f"- Data: `{plan.get('data')}`",
+            f"- Data CSV: `{plan.get('data_csv')}`",
+            f"- Budget: `{plan.get('budget')}`",
             "",
             "```bash",
             str(plan.get("command", "")),
             "```",
             "",
             "## Recovery",
-            "This trace is recoverable from `research_state/multiagent_trace.json`. Re-run with `--execute-demo` when the staged plan is approved for real benchmark execution.",
+            "This trace is recoverable from `research_state/multiagent_trace.json`. Re-run with `--execute-demo` when the staged plan is approved for benchmark execution.",
         ]
     )
     return "\n".join(lines) + "\n"

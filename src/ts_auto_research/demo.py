@@ -5,8 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .io_utils import ensure_dir, write_json, write_yaml
+from .io_utils import ensure_dir, read_json, write_json, write_yaml
 from .literature import build_index, read_index
+from .multiagent import run_research_crew
 from .paths import Workspace
 from .registry import register_run
 from .reviewer import review_run, review_to_markdown
@@ -23,6 +24,14 @@ def _split_output(output: str) -> tuple[str, str]:
         return output, ""
     stdout, stderr = output.split(marker, 1)
     return stdout, stderr
+
+
+def _default_public_demo_paper_source(workspace: Workspace) -> Path:
+    return workspace.root / "examples" / "demo_paper_notes"
+
+
+def _default_public_demo_data_csv(workspace: Workspace) -> Path:
+    return workspace.root / "examples" / "sample_series.csv"
 
 
 def _shell_command_from_metrics(metrics: dict[str, Any]) -> str:
@@ -421,6 +430,113 @@ def _full_research_report(
             "",
             "## Next Automated Step",
             "Convert this fixed demo into a bounded `tsl-simple` loop that chooses the next model or dataset from the active scope based on the leaderboard and post-taste review.",
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def run_public_mini_demo(
+    workspace: Workspace,
+    topic: str = "forecasting",
+    paper_source: Path | None = None,
+    data_csv: Path | None = None,
+    column: str = "value",
+    budget: int = 1,
+) -> dict[str, Any]:
+    """Run the portable public demo with only bundled assets and stdlib code."""
+    init_workspace(workspace)
+    paper_source = paper_source or _default_public_demo_paper_source(workspace)
+    data_csv = data_csv or _default_public_demo_data_csv(workspace)
+    if not paper_source.exists():
+        raise RuntimeError(f"public demo paper source not found: {paper_source}")
+    if not data_csv.exists():
+        raise RuntimeError(f"public demo data CSV not found: {data_csv}")
+
+    trace = run_research_crew(
+        workspace,
+        topic=topic,
+        paper_source=paper_source,
+        literature_limit=20,
+        models=["dlinear-mini"],
+        data="sample_series.csv",
+        data_csv=str(data_csv),
+        column=column,
+        backend="dlinear-mini",
+        budget=budget,
+        execute_demo=True,
+    )
+    report = _public_mini_report(workspace, trace, paper_source=paper_source, data_csv=data_csv, column=column)
+    report_path = workspace.research_state / "public_mini_demo_report.md"
+    report_path.write_text(report, encoding="utf-8")
+    return {"trace": trace, "report_path": str(report_path)}
+
+
+def _public_mini_report(workspace: Workspace, trace: dict[str, Any], paper_source: Path, data_csv: Path, column: str) -> str:
+    runner_task = next((task for task in trace.get("tasks", []) if task.get("agent_id") == "experiment_runner"), {})
+    reviewer_task = next((task for task in trace.get("tasks", []) if task.get("agent_id") == "result_reviewer"), {})
+    run_ids = runner_task.get("data", {}).get("run_ids", [])
+    literature_records = read_index(workspace, limit=3)
+    lines = [
+        "# Public Mini Demo Report",
+        "",
+        "## What This Demonstrates",
+        "A clone-local research loop that needs no private server paths: bundled paper notes, bundled CSV data, multi-agent orchestration, mini time-series benchmark execution, leaderboard update, and strict review.",
+        "",
+        "## Inputs",
+        f"- Paper notes: `{paper_source}`",
+        f"- Data CSV: `{data_csv}`",
+        f"- Target column: `{column}`",
+        f"- Topic: `{trace.get('topic')}`",
+        f"- Selected idea: `{trace.get('selected_idea_id')}`",
+        "",
+        "## Literature Signals",
+    ]
+    for record in literature_records:
+        contribution = str(record.get("contribution", ""))[:180]
+        lines.append(f"- **{record.get('title', 'untitled')}**: {contribution}")
+
+    lines.extend(
+        [
+            "",
+            "## Multi-Agent Stages",
+            "",
+            "| Agent | Status | Summary |",
+            "|---|---|---|",
+        ]
+    )
+    for task in trace.get("tasks", []):
+        lines.append(f"| `{task.get('agent_id')}` | `{task.get('status')}` | {task.get('summary')} |")
+
+    lines.extend(
+        [
+            "",
+            "## Experiment Results",
+            "",
+            "| Run | Backend | Metric | Value | Baseline | Delta | Decision |",
+            "|---|---|---:|---:|---:|---:|---|",
+        ]
+    )
+    for run_id in run_ids:
+        metrics = read_json(workspace.run_dir(run_id) / "metrics.json", default={})
+        review = read_json(workspace.run_dir(run_id) / "review.json", default={})
+        lines.append(
+            f"| `{run_id}` | `{metrics.get('backend')}` | `{metrics.get('metric_name')}` | {metrics.get('metric_value')} | {metrics.get('baseline')} | {metrics.get('delta')} | `{review.get('decision')}` |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Artifacts",
+            f"- Multi-agent trace: `{workspace.multiagent_trace_md}`",
+            f"- Leaderboard: `{workspace.leaderboard_csv}`",
+            f"- Trajectory: `{workspace.trajectory_jsonl}`",
+            f"- Reviewer summary: {reviewer_task.get('summary', '')}",
+            "",
+            "## Reproduce",
+            "",
+            "```bash",
+            "ts-agent demo public-mini",
+            "```",
         ]
     )
     return "\n".join(lines) + "\n"

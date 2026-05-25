@@ -1,5 +1,16 @@
 # Presentation Demo
 
+## Public Mini Demo
+
+The portable demo is the recommended first run for outside users:
+
+```bash
+python -m pip install -e .
+ts-agent demo public-mini
+```
+
+It uses only bundled paper notes and `examples/sample_series.csv`, then writes `research_state/public_mini_demo_report.md` and `research_state/multiagent_trace.md`.
+
 This demo proves the full loop with real Time-Series-Library_simple executions rather than synthetic metrics.
 
 ## Command

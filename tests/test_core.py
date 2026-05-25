@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from ts_auto_research.assets import filter_assets, scan_assets, write_asset_inventory
 from ts_auto_research.literature import build_index, read_index
+from ts_auto_research.demo import run_public_mini_demo
 from ts_auto_research.loop import run_loop_budget, run_next
 from ts_auto_research.paths import Workspace
 from ts_auto_research.multiagent import read_multiagent_trace, run_research_crew
@@ -177,6 +178,32 @@ class CoreLoopTests(unittest.TestCase):
             self.assertIn("synthesis_agent", agent_ids)
             self.assertIn("ts-agent demo full-research", trace["execution_plan"]["command"])
             self.assertEqual(read_multiagent_trace(workspace)["run_id"], trace["run_id"])
+
+
+    def test_public_mini_demo_runs_full_portable_loop(self) -> None:
+        with TemporaryDirectory() as tmp:
+            workspace = self.workspace(tmp)
+            init_workspace(workspace)
+            source = self.write_note_source(Path(tmp))
+            csv_path = Path(tmp) / "series.csv"
+            rows = ["t,value"]
+            for idx in range(60):
+                value = 10 + 0.08 * idx + 0.004 * idx * idx
+                rows.append(f"{idx},{value:.4f}")
+            csv_path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            result = run_public_mini_demo(workspace, paper_source=source, data_csv=csv_path, budget=1)
+            self.assertTrue(Path(result["report_path"]).exists())
+            self.assertTrue(workspace.multiagent_trace_json.exists())
+            trace = result["trace"]
+            self.assertEqual(trace["mode"], "execute-demo")
+            self.assertEqual(trace["execution_plan"]["backend"], "dlinear-mini")
+            runner = next(task for task in trace["tasks"] if task["agent_id"] == "experiment_runner")
+            reviewer = next(task for task in trace["tasks"] if task["agent_id"] == "result_reviewer")
+            self.assertEqual(runner["status"], "completed")
+            self.assertEqual(reviewer["status"], "completed")
+            self.assertEqual(len(runner["data"]["run_ids"]), 1)
+            run_id = runner["data"]["run_ids"][0]
+            self.assertTrue(workspace.run_dir(run_id).joinpath("review.md").exists())
 
 
 if __name__ == "__main__":

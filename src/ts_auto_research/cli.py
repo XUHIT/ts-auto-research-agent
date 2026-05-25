@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 
 from .assets import filter_assets, scan_assets, write_asset_inventory
-from .demo import run_full_research_demo, run_tsl_simple_demo
+from .demo import run_full_research_demo, run_public_mini_demo, run_tsl_simple_demo
 from .io_utils import read_json
 from .literature import build_index
 from .loop import parse_last, read_leaderboard, run_loop_budget, run_next
@@ -186,7 +186,11 @@ def cmd_multiagent_run(args: argparse.Namespace) -> int:
         paper_source=paper_source,
         literature_limit=args.literature_limit,
         models=args.model,
+        backend=args.backend,
+        budget=args.budget,
         data=args.data,
+        data_csv=args.data_csv,
+        column=args.column,
         seq_len=args.seq_len,
         pred_len=args.pred_len,
         subset_ratio=args.subset_ratio,
@@ -216,12 +220,33 @@ def cmd_multiagent_show(args: argparse.Namespace) -> int:
         print(command)
     return 0
 
+def cmd_demo_public_mini(args: argparse.Namespace) -> int:
+    workspace = _workspace(args)
+    result = run_public_mini_demo(
+        workspace,
+        topic=args.topic,
+        paper_source=Path(args.paper_source) if args.paper_source else None,
+        data_csv=Path(args.data_csv) if args.data_csv else None,
+        column=args.column,
+        budget=args.budget,
+    )
+    trace = result["trace"]
+    print(f"demo_report={result['report_path']}")
+    print(f"multiagent_trace={workspace.multiagent_trace_md}")
+    print(f"run_id={trace['run_id']} selected_idea={trace['selected_idea_id']}")
+    return 0
+
+
 def cmd_demo_tsl_simple(args: argparse.Namespace) -> int:
     workspace = _workspace(args)
     result = run_tsl_simple_demo(
         workspace,
         models=args.model,
+        backend=args.backend,
+        budget=args.budget,
         data=args.data,
+        data_csv=args.data_csv,
+        column=args.column,
         seq_len=args.seq_len,
         pred_len=args.pred_len,
         subset_ratio=args.subset_ratio,
@@ -245,7 +270,11 @@ def cmd_demo_full_research(args: argparse.Namespace) -> int:
         paper_source=Path(args.paper_source),
         topic=args.topic,
         models=args.model,
+        backend=args.backend,
+        budget=args.budget,
         data=args.data,
+        data_csv=args.data_csv,
+        column=args.column,
         seq_len=args.seq_len,
         pred_len=args.pred_len,
         subset_ratio=args.subset_ratio,
@@ -349,7 +378,11 @@ def build_parser() -> argparse.ArgumentParser:
     multi_run.add_argument("--topic", default="forecasting")
     multi_run.add_argument("--paper-source", default=None, help="Optional paper-note source directory. Uses existing index when omitted.")
     multi_run.add_argument("--literature-limit", type=int, default=50)
+    multi_run.add_argument("--backend", default="tsl-simple", choices=["smoke", "dlinear-mini", "tsl-simple"])
+    multi_run.add_argument("--budget", type=int, default=1)
     multi_run.add_argument("--model", action="append", default=[], help="Model to include in the staged plan. Defaults to DLinear, PatchTST, MLP.")
+    multi_run.add_argument("--data-csv", default=None)
+    multi_run.add_argument("--column", default=None)
     multi_run.add_argument("--data", default="ETTh1.csv")
     multi_run.add_argument("--seq-len", type=int, default=24)
     multi_run.add_argument("--pred-len", type=int, default=24)
@@ -362,6 +395,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     demo_p = subparsers.add_parser("demo", help="Presentation-grade demo commands.")
     demo_sub = demo_p.add_subparsers(dest="demo_command", required=True)
+    demo_public = demo_sub.add_parser("public-mini", help="Run a clone-local complete research-agent demo.")
+    demo_public.add_argument("--topic", default="forecasting")
+    demo_public.add_argument("--paper-source", default=None, help="Defaults to examples/demo_paper_notes.")
+    demo_public.add_argument("--data-csv", default=None, help="Defaults to examples/sample_series.csv.")
+    demo_public.add_argument("--column", default="value")
+    demo_public.add_argument("--budget", type=int, default=1)
+    demo_public.set_defaults(func=cmd_demo_public_mini)
+
     demo_tsl = demo_sub.add_parser("tsl-simple", help="Run a small real Time-Series-Library_simple comparison demo.")
     demo_tsl.add_argument("--model", action="append", default=[], help="Model to run. Pass multiple times. Defaults to DLinear, PatchTST, MLP.")
     demo_tsl.add_argument("--data", default="ETTh1.csv")

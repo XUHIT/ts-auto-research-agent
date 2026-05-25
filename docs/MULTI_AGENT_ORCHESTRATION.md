@@ -29,6 +29,19 @@ ts-agent multiagent run \
   --model MLP
 ```
 
+Stage and execute the portable backend path:
+
+```bash
+ts-agent multiagent run \
+  --topic forecasting \
+  --paper-source examples/demo_paper_notes \
+  --backend dlinear-mini \
+  --budget 1 \
+  --data-csv examples/sample_series.csv \
+  --column value \
+  --execute-demo
+```
+
 Inspect the latest orchestration trace:
 
 ```bash

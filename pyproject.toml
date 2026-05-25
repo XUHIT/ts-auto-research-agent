@@ -7,6 +7,7 @@ name = "ts-auto-research-agent"
 version = "0.1.0"
 description = "A time-series autonomous research agent with vibe/taste gates and metric-driven experiment loops."
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "XUHIT" }]
 dependencies = []
